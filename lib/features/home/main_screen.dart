@@ -25,7 +25,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
     ref.listenManual(randomRecipesProvider, (previous, next) {
-      if (_stableRandomRecipes.isEmpty && next.isNotEmpty) {
+      if (next.isNotEmpty) {
         setState(() {
           _stableRandomRecipes = next;
         });
@@ -257,12 +257,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 ],
               ),
             ),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {});
-            },
-            child: Text('DEV BUTTON'),
           ),
         ],
       ),

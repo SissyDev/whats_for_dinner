@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/recipe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -14,11 +15,53 @@ final randomLoadingProvider = StateProvider<bool>((ref) => false);
 
 class RandomNotifier extends StateNotifier<List<Recipe>> {
   RandomNotifier(this.ref) : super(const []) {
+    ref.listen<List<Ingredient>>(storageProvider, (previous, next) {
+      _recalculateMissingIngredients(next);
+    });
+
     Future.microtask(randomRecipes);
   }
+
   final Ref ref;
 
-  Recipe _recipeFromMeal(Map<String, dynamic> meal, List availableIngredients) {
+    void _recalculateMissingIngredients(List<Ingredient> availableIngredients) {
+    state = [
+      for (final recipe in state)
+        Recipe(
+          id: recipe.id,
+          title: recipe.title,
+          picture: recipe.picture,
+          ingredientsList: recipe.ingredientsList,
+          unitList: recipe.unitList,
+          instructions: recipe.instructions,
+          area: recipe.area,
+          category: recipe.category,
+          tags: recipe.tags,
+          youtube: recipe.youtube,
+          missingIngredients: _countMissingIngredients(
+            recipe.ingredientsList,
+            availableIngredients,
+          ),
+        ),
+    ];
+  }
+
+  int _countMissingIngredients(
+    List<String> recipeIngredients,
+    List<Ingredient> availableIngredients,
+  ) {
+    return recipeIngredients
+        .where(
+          (recIng) => !availableIngredients.any(
+            (pantryIng) =>
+                recIng.trim().toLowerCase() ==
+                pantryIng.name.trim().toLowerCase(),
+          ),
+        )
+        .length;
+  }
+
+  Recipe _recipeFromMeal(Map<String, dynamic> meal, List<Ingredient> availableIngredients) {
     final List<String> ingrList = [];
     final List<String> unitList = [];
     for (var i = 1; i <= 20; i++) {
@@ -29,16 +72,6 @@ class RandomNotifier extends StateNotifier<List<Recipe>> {
         unitList.add(unit?.trim() ?? '');
       }
     }
-
-    final missingIngredients = ingrList
-        .where(
-          (recIng) => !availableIngredients.any(
-            (pantryIng) =>
-                recIng.trim().toLowerCase() ==
-                pantryIng.name.trim().toLowerCase(),
-          ),
-        )
-        .length;
 
     return Recipe(
       id: meal['idMeal']?.toString() ?? "",
@@ -51,7 +84,7 @@ class RandomNotifier extends StateNotifier<List<Recipe>> {
       category: meal['strCategory']?.toString() ?? "",
       tags: meal['strTags']?.toString() ?? "",
       youtube: meal['strYoutube']?.toString() ?? "",
-      missingIngredients: missingIngredients,
+      missingIngredients: _countMissingIngredients(ingrList, availableIngredients),
     );
   }
 
