@@ -28,11 +28,11 @@ class IngredientCard extends ConsumerWidget {
                 ),
               ),
               child: Container(
-                height: 40,
+                height: 50,
                 width: 50,
                 decoration: BoxDecoration(
                   color: ingredient.category.color,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(25),
                 ),
                 child: Center(child: Text(ingredient.category.emoji)),
               ),

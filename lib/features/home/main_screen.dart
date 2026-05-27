@@ -81,7 +81,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             suggestedRecipesCount: suggestedRecipesCount,
           ),
           // --- RUNNING LOW/NO INGREDIENTS/PANTRY FULL/NO RECIPES ---
-          IngredientsSituation(),
+          const IngredientsSituation(),
           // --- READY TO COOK ---
           totalIngredients.isNotEmpty && (isLoading || recipesList.isNotEmpty)
               ? Padding(

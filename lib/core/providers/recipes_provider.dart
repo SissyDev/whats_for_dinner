@@ -45,7 +45,7 @@ class RecipeNotifier extends StateNotifier<List<Recipe>> {
         state = [];
         return state;
       }
-      // 2. Uniamo i pasti per ID per evitare duplicati
+
       final Map<String, dynamic> combinedMap = {};
       for (var meal in ingrMeals) {
         combinedMap[meal['idMeal'].toString()] = meal;

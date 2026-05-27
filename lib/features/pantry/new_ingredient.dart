@@ -145,7 +145,8 @@ class _NewIngredientState extends ConsumerState<NewIngredient> {
 
             const SizedBox(height: 5),
             // --- PLACES BUTTONS ---
-            PlacesButtons(),
+            const PlacesButtons(),
+
             Padding(
               padding: const EdgeInsets.only(left: 4, top: 16, bottom: 10),
               child: Text(

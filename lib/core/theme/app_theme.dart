@@ -19,21 +19,22 @@ class MyAppTheme {
     outline: const Color(0xFFD1D1D1),
   );
   // --- DARK COLORS ---
-static final ColorScheme darkColorScheme = ColorScheme.fromSeed(
-  brightness: Brightness.dark,
-  seedColor: const Color(0xFFA8D5BA),
-  primary: const Color(0xFF1B3322),
-  onPrimary: const Color(0xFFE8F2EA),
-  secondary: const Color(0xFFFF8C42),
-  onSecondary: const Color(0xFF1A1A1A),
-  tertiary: const Color(0xFFA8D5BA),
-  error: const Color(0xFFFF6B6B),
-  surface: const Color(0xFF0F1812),
-  surfaceContainer: const Color(0xFF1A241D),
-  onSurface: const Color(0xFFE8F2EA),
-  onSurfaceVariant: const Color(0xFFAEBCAF),
-  outline: const Color(0xFF4A5A4D),
-);
+  static final ColorScheme darkColorScheme = ColorScheme.fromSeed(
+    brightness: Brightness.dark,
+    seedColor: const Color(0xFF2E7D4F),
+    primary: const Color(0xFF2E7D4F),
+    onPrimary: const Color(0xFFFFFFFF),
+    secondary: const Color(0xFFFF9F43),
+    onSecondary: const Color(0xFF111111),
+    tertiary: const Color(0xFF7FD69B),
+    onTertiary: const Color(0xFF121212),
+    error: const Color(0xFFFF6B6B),
+    surface: const Color(0xFF101010),
+    surfaceContainer: const Color(0xFF1C1C1E),
+    onSurface: const Color(0xFFF5F5F5),
+    onSurfaceVariant: const Color(0xFFB8B8B8),
+    outline: const Color(0xFF3A3A3C),
+  );
   // -- LIGHT THEME
   static ThemeData get lightTheme {
     return ThemeData(
@@ -159,12 +160,11 @@ static final ColorScheme darkColorScheme = ColorScheme.fromSeed(
       cardTheme: CardThemeData(
         color: darkColorScheme.surfaceContainer,
         margin: const EdgeInsets.all(10),
-        elevation:
-            0, 
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: darkColorScheme.outline.withAlpha(1),
+            color: darkColorScheme.outline,
           ), 
         ),
       ),
@@ -174,20 +174,24 @@ static final ColorScheme darkColorScheme = ColorScheme.fromSeed(
         titleLarge: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.bold,
-          color: darkColorScheme.tertiary,
+          color: darkColorScheme.onSurface,
         ),
         titleMedium: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: darkColorScheme.tertiary,
+          color: darkColorScheme.onSurface,
         ),
         titleSmall: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: darkColorScheme.tertiary,
+          color: darkColorScheme.onSurface,
         ),
         bodyLarge: TextStyle(fontSize: 16, color: darkColorScheme.onSurface),
         bodyMedium: TextStyle(fontSize: 14, color: darkColorScheme.onSurface),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          color: darkColorScheme.onSurfaceVariant,
+        ),
         labelLarge: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
@@ -221,14 +225,23 @@ static final ColorScheme darkColorScheme = ColorScheme.fromSeed(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: darkColorScheme.outline.withAlpha(3),
+            color: darkColorScheme.outline,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: darkColorScheme.outline.withAlpha(3),
+            color: darkColorScheme.outline,
           ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: darkColorScheme.primary),
+        ),
+        hintStyle: TextStyle(color: darkColorScheme.onSurfaceVariant),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 16,
         ),
       ),
 

@@ -21,7 +21,7 @@ class SuggestionsNotifier extends StateNotifier<List<Recipe>> {
   }
 
   Future<void> suggestedRecipes() async {
-    final requestSerial = ++_requestSerial;
+    final int requestSerial = ++_requestSerial;
     ref.read(suggRecipesLoadingProvider.notifier).state = true;
     try {
       final ingredients = ref.read(storageProvider);
@@ -33,53 +33,34 @@ class SuggestionsNotifier extends StateNotifier<List<Recipe>> {
 
       final responses = await Future.wait(
         ingredients.map((ingredient) {
-          final url = ApiConfig.mealDb(
-            'filter.php',
-            {'i': _mealDbIngredientQuery(ingredient.name)},
-          );
+          final url = ApiConfig.mealDb('filter.php', {
+            'i': _mealDbIngredientQuery(ingredient.name),
+          });
           return http.get(url);
         }),
       );
       if (requestSerial != _requestSerial) return;
-      final Set<String> seenIds = {};
-      final List<Recipe> allRecipes = [];
+      final List<String> seenIds = [];
+      final List<String> recipeIds = [];
       for (final response in responses) {
         if (response.statusCode != 200) continue;
         final data = json.decode(response.body);
         final List meals = data['meals'] ?? [];
-
         for (final meal in meals) {
           final id = meal['idMeal']?.toString() ?? "";
           if (id.isEmpty || seenIds.contains(id)) continue;
           seenIds.add(id);
-          allRecipes.add(
-            Recipe(
-              id: id,
-              title: meal['strMeal'] ?? "",
-              picture: meal['strMealThumb'] ?? "",
-              ingredientsList: [],
-              unitList: [],
-              instructions: "",
-              area: "",
-              category: "",
-              tags: "",
-              youtube: "",
-              missingIngredients: 0,
-            ),
-          );
+          recipeIds.add(id);
         }
       }
       final updatedRecipes = await Future.wait(
-        allRecipes.map((recipe) async {
-          if (requestSerial != _requestSerial) return recipe;
-          final fullRecipe = await ref
-              .read(recipesListProvider.notifier)
-              .getRecipe(recipe.id);
-          return fullRecipe ?? recipe;
+        recipeIds.map((id) async {
+          if (requestSerial != _requestSerial) return null;
+          return ref.read(recipesListProvider.notifier).getRecipe(id);
         }),
       );
       if (requestSerial != _requestSerial) return;
-      state = updatedRecipes;
+      state = updatedRecipes.whereType<Recipe>().toList();
     } catch (e) {
       dev.log("Errore: $e");
     } finally {

@@ -13,32 +13,30 @@ class RecipesView extends StatelessWidget {
       appBar: AppBar(title: Text('Ready to cook')),
       body: Padding(
         padding: const EdgeInsets.all(4),
-        child: Card(
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: recipes.length,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => Meal(
-                            value: recipes[index].id,
-                            initialRecipe: recipes[index],
-                          ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: recipes.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => Meal(
+                          value: recipes[index].id,
+                          initialRecipe: recipes[index],
                         ),
                       ),
-                      child: RecipesCard(recipe: recipes[index]),
                     ),
+                    child: RecipesCard(recipe: recipes[index]),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );

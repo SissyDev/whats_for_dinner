@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/widgets/running_out_card.dart';
+import 'package:whats_for_dinner/features/home/running_low_view.dart';
 import 'package:whats_for_dinner/features/pantry/new_ingredient.dart';
 import 'package:whats_for_dinner/core/providers/db_provider.dart';
 import 'package:whats_for_dinner/core/providers/storage_provider.dart';
@@ -125,12 +126,11 @@ class IngredientsSituation extends ConsumerWidget {
                               ),
                               const Spacer(),
                               IconButton(
-                                onPressed: () {
-                                  ref
-                                          .read(selectedPageProvider.notifier)
-                                          .state =
-                                      1;
-                                },
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => RunningLowView(),
+                                  ),
+                                ),
                                 icon: Icon(
                                   Icons.arrow_forward_ios_rounded,
                                   size: 13,
