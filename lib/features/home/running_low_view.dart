@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/providers/storage_provider.dart';
 import 'package:whats_for_dinner/core/widgets/ingredient_card.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';

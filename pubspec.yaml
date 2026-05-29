@@ -79,6 +79,7 @@ flutter:
       - lib\assets\images\ingredients.png
       - lib\assets\images\all.png
       - lib\assets\images\lens.png
+      - lib\assets\images\groceries.png
       - lib\assets\json\cooking.json
 
   # An image asset can refer to one or more resolution-specific "variants", see

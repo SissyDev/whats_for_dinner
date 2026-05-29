@@ -85,176 +85,185 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           // --- READY TO COOK ---
           totalIngredients.isNotEmpty && (isLoading || recipesList.isNotEmpty)
               ? Padding(
-                  padding: const EdgeInsets.only(top: 12, bottom: 4),
+                  padding: const EdgeInsets.only(top: 12),
                   child: SizedBox(
                     height: 240,
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const SizedBox(width: 15),
-                            Text(
-                              'Ready to cook',
-                              style: Theme.of(context).textTheme.titleSmall!
-                                  .copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                    fontSize: 18,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const SizedBox(width: 15),
+                              Text(
+                                'Ready to cook',
+                                style: Theme.of(context).textTheme.titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontSize: 18,
+                                    ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        RecipesView(recipes: sortedRecipes),
                                   ),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      RecipesView(recipes: sortedRecipes),
+                                ),
+                                child: Text(
+                                  'View All',
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
-                              child: Text(
-                                'View All',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: SizedBox(
-                            height: 190,
-                            child: isLoading
-                                ? Center(
-                                    child: Container(
-                                      height: 120,
-                                      width: 230,
-                                      alignment: Alignment.center,
-                                      child: const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : totalIngredients.isNotEmpty
-                                ? ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: sortedRecipes.length,
-                                    itemBuilder: (context, index) {
-                                      return SizedBox(
-                                        width: 200,
-                                        child: InkWell(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => Meal(
-                                                  value:
-                                                      sortedRecipes[index].id,
-                                                  initialRecipe:
-                                                      sortedRecipes[index],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          child: SuggestedRecipesCard(
-                                            recipe: sortedRecipes[index],
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: SizedBox(
+                              height: 190,
+                              child: isLoading
+                                  ? Center(
+                                      child: Container(
+                                        height: 120,
+                                        width: 230,
+                                        alignment: Alignment.center,
+                                        child: const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
                                           ),
                                         ),
-                                      );
-                                    },
-                                  )
-                                : const SizedBox(),
+                                      ),
+                                    )
+                                  : totalIngredients.isNotEmpty
+                                  ? ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: sortedRecipes.length,
+                                      itemBuilder: (context, index) {
+                                        return SizedBox(
+                                          width: 200,
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => Meal(
+                                                    value:
+                                                        sortedRecipes[index].id,
+                                                    initialRecipe:
+                                                        sortedRecipes[index],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: SuggestedRecipesCard(
+                                              recipe: sortedRecipes[index],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : const SizedBox(),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 )
               : const SizedBox(),
 
           // --- RANDOM RECIPES ---
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: SizedBox(
-              height: 260,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 15),
-                      Text(
-                        'Get inspired',
-                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 18,
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                RecipesView(recipes: sortedRandomRecipes),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: SizedBox(
+                height: 260,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const SizedBox(width: 15),
+                        Text(
+                          'Get inspired',
+                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 18,
                           ),
                         ),
-                        child: Text(
-                          'View All',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RecipesView(recipes: sortedRandomRecipes),
+                            ),
+                          ),
+                          child: Text(
+                            'View All',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: SizedBox(
-                      height: 210,
-                      child: isRandomLoading && displayedRandomRecipes.isEmpty
-                          ? Center(
-                              child: Container(
-                                height: 120,
-                                alignment: Alignment.center,
-                                child: const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: sortedRandomRecipes.length,
-                              itemBuilder: (context, index) {
-                                return SizedBox(
-                                  width: 250,
-                                  height: 150,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Meal(
-                                            value:
-                                                sortedRandomRecipes[index].id,
-                                            initialRecipe:
-                                                sortedRandomRecipes[index],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: SuggestedRecipesCard(
-                                      recipe: sortedRandomRecipes[index],
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SizedBox(
+                        height: 190,
+                        child: isRandomLoading && displayedRandomRecipes.isEmpty
+                            ? Center(
+                                child: Container(
+                                  height: 120,
+                                  alignment: Alignment.center,
+                                  child: const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
                                     ),
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              )
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: sortedRandomRecipes.length,
+                                itemBuilder: (context, index) {
+                                  return SizedBox(
+                                    width: 250,
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Meal(
+                                              value:
+                                                  sortedRandomRecipes[index].id,
+                                              initialRecipe:
+                                                  sortedRandomRecipes[index],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: SuggestedRecipesCard(
+                                        recipe: sortedRandomRecipes[index],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

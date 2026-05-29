@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/providers/db_provider.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
+import 'package:whats_for_dinner/core/widgets/all_set_card.dart';
+import 'package:whats_for_dinner/core/widgets/grocery_ingredient.dart';
+
+List<String> pages = ['TB', 'B'];
 
 class ShoppingListScreen extends ConsumerStatefulWidget {
   const ShoppingListScreen({super.key});
@@ -13,86 +18,161 @@ class ShoppingListScreen extends ConsumerStatefulWidget {
 }
 
 class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
-  bool? isChecked = false;
+  String selectedPage = pages[0];
+  bool isEditing = false;
 
   void _itemRemover(int index) {
     setState(() {
-      ref.watch(dbListProvider).removeAt(index);
+      ref.watch(shoppingListProvider).removeAt(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Ingredient> ingredientsList = ref.watch(dbListProvider);
-    bool isLongPressed = false;
-    Map<int, bool> checkedItems = {};
+    //List<Ingredient> ingredientsList = ref.watch(dbListProvider);
+    List<Ingredient> groceryList = ref.watch(shoppingListProvider);
 
-    return Column(
-      children: [
-        Expanded(
-          child: Column(
+    return Container(
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
+      child: Column(
+        children: [
+          // --- TO BUY - BOUGHT ROW ---
+          Row(
+            mainAxisSize: MainAxisSize.max,
             children: [
-              const Text('TO BUY'),
               Expanded(
-                child: ListView.builder(
-                  itemCount: ingredientsList.length,
-                  itemBuilder: (context, index) => Dismissible(
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: AlignmentDirectional.centerEnd,
-                      color: Theme.of(context).colorScheme.error,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 15),
-                        child: Icon(Icons.delete, color: Colors.white,),
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onTertiary,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    key: ValueKey(ingredientsList[index].name),
-                    onDismissed: (direction) {
-                      _itemRemover(
-                        int.parse(ingredientsList[index].toString()),
-                      );
-                    },
-                    child: InkWell(
-                      onLongPress: () {
-                        setState(() {
-                          isLongPressed = true;
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          children: [
-                            Checkbox(
-                              checkColor: Colors.white,
-                              fillColor: WidgetStatePropertyAll(
-                                isChecked!
-                                    ? const Color.fromARGB(255, 94, 138, 111)
-                                    : Colors.white,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              selectedPage = pages[0];
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: BoxBorder.fromLTRB(
+                                top: BorderSide.none,
+                                right: BorderSide.none,
+                                bottom: selectedPage == pages[0]
+                                    ? BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.tertiary,
+                                        width: 2,
+                                      )
+                                    : BorderSide.none,
+                                left: BorderSide.none,
                               ),
-                              value: checkedItems[index] ?? false,
-                              onChanged: (value) {
-                                setState(() {
-                                  checkedItems[index] = value!;
-                                });
-                              },
                             ),
-                            Text(ingredientsList[index].name, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w500),),
-                            const Spacer(),
-                            Text(ingredientsList[index].quantity.toString()),
-                            Text(ingredientsList[index].unit),
-                            const SizedBox(width: 15),
-                          ],
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 40,
+                              ),
+                              child: Text(
+                                'TO BUY',
+                                style: Theme.of(context).textTheme.bodyMedium!
+                                    .copyWith(
+                                      fontWeight: selectedPage == pages[0]
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        SizedBox(height: 25, child: const VerticalDivider()),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              selectedPage = pages[1];
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: BoxBorder.fromLTRB(
+                                top: BorderSide.none,
+                                right: BorderSide.none,
+                                bottom: selectedPage == pages[1]
+                                    ? BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.tertiary,
+                                        width: 2,
+                                      )
+                                    : BorderSide.none,
+                                left: BorderSide.none,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 40,
+                              ),
+                              child: Text(
+                                'BOUGHT',
+                                style: Theme.of(context).textTheme.bodyMedium!
+                                    .copyWith(
+                                      fontWeight: selectedPage == pages[1]
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
                     ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-        Column(children: [Text('BOUGHT')],),
-      ],
+
+          // --- ALL SET / GOOD JOB CARDS ---
+          AllSetCard(selectedPage: selectedPage, isEditing: isEditing),
+          
+          const SizedBox(height: 6,),
+          Expanded(
+            child: ListView.builder(
+              itemCount: groceryList.length,
+              itemBuilder: (context, index) => Dismissible(
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: AlignmentDirectional.centerEnd,
+                  color: Theme.of(context).colorScheme.error,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 15),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                ),
+                key: ValueKey(groceryList[index].name),
+                onDismissed: (direction) {
+                  _itemRemover(int.parse(groceryList[index].toString()));
+                },
+                child: InkWell(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
+                    child: GroceryIngredient(ingredient: groceryList[index]),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

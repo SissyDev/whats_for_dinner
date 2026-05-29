@@ -21,82 +21,86 @@ class IngredientsSituation extends ConsumerWidget {
     return
     // --- NO INGREDIENTS CARD ---
     totalIngredients.isEmpty
-        ? Column(
-            children: [
-              SizedBox(height: 14),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Container(
-                    height: 260,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(64, 162, 174, 148),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: SizedBox(
-                        width: 200,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              height: 80,
-                              width: 120,
-                              child: Image.asset(
-                                'lib/assets/images/shopping_cart.png',
-                                fit: BoxFit.fill,
+        ? Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface
+          ),
+          child: Column(
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Container(
+                      height: 260,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(64, 162, 174, 148),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          width: 200,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 80,
+                                width: 120,
+                                child: Image.asset(
+                                  'lib/assets/images/shopping_cart.png',
+                                  fit: BoxFit.fill,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Your pantry is empty',
-                              style: Theme.of(context).textTheme.titleSmall!
-                                  .copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimary,
-                                    fontSize: 18,
+                              const SizedBox(height: 12),
+                              Text(
+                                'Your pantry is empty',
+                                style: Theme.of(context).textTheme.titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
+                                      fontSize: 18,
+                                    ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Start by adding ingredients to get recipe suggestions',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 10),
+                              ElevatedButton.icon(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const NewIngredient(),
                                   ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Start by adding ingredients to get recipe suggestions',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 10),
-                            ElevatedButton.icon(
-                              onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const NewIngredient(),
+                                ),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Add Ingredients'),
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    Theme.of(
+                                      context,
+                                    ).buttonTheme.colorScheme!.onSurface,
+                                  ),
+                                  foregroundColor: WidgetStatePropertyAll(
+                                    Theme.of(
+                                      context,
+                                    ).buttonTheme.colorScheme!.onSecondary,
+                                  ),
                                 ),
                               ),
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Ingredients'),
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  Theme.of(
-                                    context,
-                                  ).buttonTheme.colorScheme!.onSurface,
-                                ),
-                                foregroundColor: WidgetStatePropertyAll(
-                                  Theme.of(
-                                    context,
-                                  ).buttonTheme.colorScheme!.onSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          )
+              ],
+            ),
+        )
         : // --- RUNNING LOW ---
           Column(
             children: [

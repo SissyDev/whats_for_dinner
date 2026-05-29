@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
 
-class RunningOutCard extends StatelessWidget {
+class RunningOutCard extends ConsumerWidget {
   const RunningOutCard({super.key, required this.ingredient});
   final Ingredient ingredient;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: EdgeInsets.only(left: 4, right: 4, bottom: 8),
       shape: RoundedRectangleBorder(
@@ -19,9 +21,9 @@ class RunningOutCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.only(left: 4),
         child: SizedBox(
-          width: 160,
+          width: 168,
           child: Padding(
             padding: const EdgeInsets.all(5),
             child: Row(
@@ -32,7 +34,7 @@ class RunningOutCard extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) =>
-                          EditIngredient(ingredient: ingredient),  
+                          EditIngredient(ingredient: ingredient),
                     ),
                   ),
                   child: Container(
@@ -51,7 +53,7 @@ class RunningOutCard extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) =>
-                          EditIngredient(ingredient: ingredient),  
+                          EditIngredient(ingredient: ingredient),
                     ),
                   ),
                   child: Column(
@@ -59,7 +61,7 @@ class RunningOutCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        width: 85,
+                        width: 70,
                         child: Text(
                           ingredient.name,
                           style: Theme.of(context).textTheme.bodySmall,
@@ -80,11 +82,19 @@ class RunningOutCard extends StatelessWidget {
                 InkWell(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          EditIngredient(ingredient: ingredient),  //Change it to grocery
+                      builder: (context) => EditIngredient(
+                        ingredient: ingredient,
+                      ), //Change it to grocery
                     ),
                   ),
-                  child: Icon(Icons.shopping_cart_checkout),
+                  child: IconButton(
+                    onPressed: () {
+                      ref
+                          .read(shoppingListProvider.notifier)
+                          .addToShoppingList(ingredient);
+                    },
+                    icon: Icon(Icons.shopping_cart_checkout),
+                  ),
                 ),
               ],
             ),
