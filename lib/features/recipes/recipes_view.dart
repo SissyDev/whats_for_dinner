@@ -10,7 +10,7 @@ class RecipesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ready to cook')),
+      appBar: AppBar(title: Text('All recipes')),
       body: Padding(
         padding: const EdgeInsets.all(4),
         child: Column(

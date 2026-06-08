@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
 import 'package:whats_for_dinner/core/providers/storage_provider.dart';
 
@@ -11,6 +12,12 @@ class IngredientCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final List<Ingredient> shoppingListIngredients = ref.watch(
+      shoppingListProvider,
+    );
+    bool isInShList = shoppingListIngredients.any(
+      (item) => item.id == ingredient.id,
+    );
 
     return Card(
       elevation: 5,
@@ -50,7 +57,7 @@ class IngredientCard extends ConsumerWidget {
                 children: [
                   // --- TITLE ---
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.50,
+                    width: MediaQuery.of(context).size.width * 0.40,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -72,6 +79,21 @@ class IngredientCard extends ConsumerWidget {
               ),
             ),
             const Spacer(),
+            // --- CART BUTTON ---
+            IconButton(
+                  onPressed: () {
+                    if (isInShList) {
+                      return;
+                    } else {
+                      ref
+                          .read(shoppingListProvider.notifier)
+                          .addGrocery(ingredient);
+                    }
+                  },
+                  icon: !isInShList
+                      ? Icon(Icons.shopping_cart_outlined)
+                      : Icon(Icons.shopping_cart_rounded),
+                ),
             // --- DELETE BUTTON ---
             IconButton(
               onPressed: () {
@@ -79,7 +101,11 @@ class IngredientCard extends ConsumerWidget {
                     .read(storageProvider.notifier)
                     .removeData(ingredient, ingredient.id);
               },
-              icon: Icon(Icons.delete, size: 25, color: Theme.of(context).colorScheme.tertiary,),
+              icon: Icon(
+                Icons.delete,
+                size: 25,
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
             ),
           ],
         ),

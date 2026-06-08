@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 
 class AllSetCard extends StatelessWidget {
-  const AllSetCard({super.key, required this.selectedPage, required this.isEditing}
-  );
+  const AllSetCard({
+    super.key,
+    required this.selectedPage,
+    required this.isEditing,
+    required this.total,
+    required this.remaining
+  });
   final String selectedPage;
   final bool isEditing;
+  final int total;
+  final int remaining;
 
   @override
   Widget build(BuildContext context) {
-    return           // --- ALL SET / EDIT ITEMS ---
-          selectedPage == 'TB' ?
-          Padding(
+    // --- ALL SET / EDIT ITEMS ---
+    return selectedPage == 'TB'
+        ? Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Container(
               decoration: BoxDecoration(
@@ -49,7 +56,7 @@ class AllSetCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           isEditing == false
-                              ? 'You have 12 items to buy'
+                              ? 'You have $total items to buy'
                               : 'Remove or reorder items',
                           style: Theme.of(
                             context,
@@ -79,7 +86,8 @@ class AllSetCard extends StatelessWidget {
                 ),
               ),
             ),
-          )  :
+          )
+        :
           // --- GOOD JOB ---
           Stack(
             children: [

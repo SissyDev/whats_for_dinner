@@ -2,32 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
 import 'package:whats_for_dinner/core/providers/storage_provider.dart';
+import 'package:whats_for_dinner/features/shopping_list/shopping_list_screen.dart';
 
-bool? isChecked = false;
-
-class GroceryIngredient extends ConsumerWidget {
+class GroceryIngredient extends ConsumerStatefulWidget {
+  const GroceryIngredient({
+    super.key,
+    required this.ingredient,
+    required this.onSelected,
+    required this.editing,
+  });
   final Ingredient ingredient;
-  const GroceryIngredient({super.key, required this.ingredient});
-
+  final void Function(bool) onSelected;
+  final bool editing;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Map<int, bool> checkedItems = {};
+  ConsumerState<GroceryIngredient> createState() => _GroceryIngredientState();
+}
+
+class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
+  bool isChecked = false;
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(shoppingListProvider);
 
     return Card(
       elevation: 5,
       margin: EdgeInsets.only(bottom: 8),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(4),
         child: Row(
           children: [
-            const SizedBox(width: 5),
+            // --- CHECKBOX ---
+            Checkbox(
+              checkColor: isChecked
+                  ? Theme.of(context).colorScheme.onTertiary
+                  : Theme.of(context).colorScheme.tertiary,
+              fillColor: WidgetStatePropertyAll(
+                Theme.of(context).colorScheme.tertiary,
+              ),
+              value: isChecked,
+              onChanged: (value) {
+                if (value == null) {
+                  return;
+                }
+                setState(() {
+                  isChecked = value;
+                  widget.onSelected(value);
+                });
+              },
+            ),
+            // --- MOVE ITEM ICON ---
+            widget.editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
+            const SizedBox(width: 10),
             // --- PICTURE + EDIT ---
             InkWell(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => EditIngredient(ingredient: ingredient),
+                  builder: (context) =>
+                      EditIngredient(ingredient: widget.ingredient),
                 ),
               ),
               child: Container(
@@ -37,69 +71,62 @@ class GroceryIngredient extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: Center(child: Text(ingredient.category.emoji)),
+                child: Center(child: Text(widget.ingredient.category.emoji)),
               ),
             ),
             const SizedBox(width: 12),
             InkWell(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => EditIngredient(ingredient: ingredient),
+                  builder: (context) =>
+                      EditIngredient(ingredient: widget.ingredient),
                 ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  // --- CHECKBOX ---
-                  /* Checkbox(
-                    checkColor: Colors.white,
-                    fillColor: WidgetStatePropertyAll(
-                      isChecked!
-                          ? const Color.fromARGB(255, 94, 138, 111)
-                          : Colors.white,
-                    ),
-                    value: checkedItems[index] ?? false,
-                    onChanged: (value) {
-                      setState(() {
-                        checkedItems[index] = value!;
-                      });
-                    },
-                  ), */
                   // --- TITLE ---
                   SizedBox(
-                    width: 150,
+                    width: 100,
                     child: Text(
-                      ingredient.name,
+                      widget.ingredient.name,
                       style: Theme.of(context).textTheme.titleSmall!.copyWith(
                         fontSize: 12,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ),
-
-                  // --- QTY ---
-                  Text(
-                    '${ingredient.quantity.toString()} ${ingredient.unit}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
                 ],
               ),
             ),
             const Spacer(),
-            // --- DELETE BUTTON ---
-            IconButton(
-              onPressed: () {
-                ref
-                    .read(storageProvider.notifier)
-                    .removeData(ingredient, ingredient.id);
-              },
-              icon: Icon(
-                Icons.delete,
-                size: 25,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
+            Row(
+              children: [
+                // --- QTY ---
+                Text(
+                  '${widget.ingredient.quantity.toString()} ${widget.ingredient.unit}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .removeGroceries(
+                          widget.ingredient,
+                          widget.ingredient.id,
+                        );
+                  },
+                  icon: Icon(
+                    Icons.delete,
+                    size: 25,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                ),
+              ],
             ),
+            // --- DELETE BUTTON ---
           ],
         ),
       ),

@@ -126,13 +126,11 @@ class StorageNotifier extends StateNotifier<List<Ingredient>> {
   }
 
   Future<void> addNewIngredients(List<Ingredient> ingredients) async {
-  final db = await _getDatabase();
-  final batch = db.batch();
+    final db = await _getDatabase();
+    final batch = db.batch();
 
-  for (final ingredient in ingredients) {
-    batch.insert(
-      'user_ingredients',
-      {
+    for (final ingredient in ingredients) {
+      batch.insert('user_ingredients', {
         'id': ingredient.id,
         'picture': ingredient.picture,
         'name': ingredient.name,
@@ -142,14 +140,12 @@ class StorageNotifier extends StateNotifier<List<Ingredient>> {
         'place': ingredient.place,
         'description': ingredient.description,
         'notes': ingredient.notes,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
 
-  await batch.commit(noResult: true);
-  await loadIngredients();
-}
+    await batch.commit(noResult: true);
+    await loadIngredients();
+  }
 
   Future<void> removeData(Ingredient ingredient, String id) async {
     final db = await _getDatabase();

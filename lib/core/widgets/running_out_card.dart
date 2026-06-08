@@ -11,6 +11,11 @@ class RunningOutCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final List<Ingredient> shoppingListIngredients = ref.watch(
+      shoppingListProvider,
+    );
+    bool isInShList = shoppingListIngredients.any((item) => item.id == ingredient.id);
+
     return Card(
       margin: EdgeInsets.only(left: 4, right: 4, bottom: 8),
       shape: RoundedRectangleBorder(
@@ -79,22 +84,20 @@ class RunningOutCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => EditIngredient(
-                        ingredient: ingredient,
-                      ), //Change it to grocery
-                    ),
-                  ),
-                  child: IconButton(
-                    onPressed: () {
+                // --- CART BUTTON ---
+                IconButton(
+                  onPressed: () {
+                    if (isInShList) {
+                      return;
+                    } else {
                       ref
                           .read(shoppingListProvider.notifier)
-                          .addToShoppingList(ingredient);
-                    },
-                    icon: Icon(Icons.shopping_cart_checkout),
-                  ),
+                          .addGrocery(ingredient);
+                    }
+                  },
+                  icon: !isInShList
+                      ? Icon(Icons.shopping_cart_outlined)
+                      : Icon(Icons.shopping_cart_rounded),
                 ),
               ],
             ),
