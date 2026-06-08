@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
 
-class AllSetCard extends StatelessWidget {
+class AllSetCard extends StatefulWidget {
   const AllSetCard({
     super.key,
     required this.selectedPage,
-    required this.isEditing,
+    required this.onEdit,
     required this.total,
-    required this.remaining
+    required this.remaining,
   });
   final String selectedPage;
-  final bool isEditing;
+  final Function(bool) onEdit;
   final int total;
   final int remaining;
 
   @override
+  State<AllSetCard> createState() => _AllSetCardState();
+}
+
+class _AllSetCardState extends State<AllSetCard> {
+  bool isEditing = false;
+
+  @override
   Widget build(BuildContext context) {
     // --- ALL SET / EDIT ITEMS ---
-    return selectedPage == 'TB'
+    return widget.selectedPage == 'TB'
         ? Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Container(
@@ -46,7 +53,7 @@ class AllSetCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEditing == false ? 'All set!' : 'Edit items',
+                          isEditing ? 'Edit items' : 'All set!',
                           style: Theme.of(context).textTheme.bodySmall!
                               .copyWith(
                                 color: Theme.of(context).colorScheme.onPrimary,
@@ -55,9 +62,9 @@ class AllSetCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isEditing == false
-                              ? 'You have $total items to buy'
-                              : 'Remove or reorder items',
+                          isEditing
+                              ? 'Remove or reorder items'
+                              : 'You have ${widget.total} items to buy',
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall!.copyWith(fontSize: 10),
@@ -73,10 +80,20 @@ class AllSetCard extends StatelessWidget {
                         shape: StadiumBorder(),
                         foregroundColor: Theme.of(context).colorScheme.tertiary,
                       ),
-                      onPressed: () {},
-                      icon: Icon(Icons.check),
+                      onPressed: () {
+                        setState(() {
+                          if (!isEditing) {
+                            widget.onEdit(true);
+                            isEditing = true;
+                          } else {
+                            widget.onEdit(false);
+                            isEditing = false;
+                          }
+                        });
+                      },
+                      icon: isEditing ? Icon(Icons.check) : Icon(Icons.edit),
                       label: Text(
-                        'Done',
+                        isEditing ? 'Done' : 'Edit',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall!.copyWith(fontSize: 10),

@@ -1,12 +1,10 @@
-// On long press: pulsanti x - modifica - copia - elimina; apre la modalità di selezione
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whats_for_dinner/core/animations/shake_widget.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/core/widgets/all_set_card.dart';
 import 'package:whats_for_dinner/core/widgets/grocery_ingredient.dart';
-import 'dart:developer' as dev;
 
 List<String> pages = ['TB', 'B'];
 
@@ -27,12 +25,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   void initState() {
     ref.read(shoppingListProvider.notifier).loadGroceries();
     super.initState();
-  }
-
-  void _itemRemover(int index) {
-    setState(() {
-      ref.watch(shoppingListProvider).removeAt(index);
-    });
   }
 
   @override
@@ -160,7 +152,11 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               // --- ALL SET / GOOD JOB CARDS ---
               AllSetCard(
                 selectedPage: selectedPage,
-                isEditing: isEditing,
+                onEdit: (editing) {
+                  setState(() {
+                    isEditing = editing;
+                  });
+                },
                 total: groceryList.length,
                 remaining: selectedGroceries.length,
               ),
@@ -178,23 +174,30 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                         left: 12,
                         right: 12,
                       ),
-                      child: GroceryIngredient(
-                        ingredient: groceryList[index],
-                        editing: isEditing,
-                        onSelected: (selected) {
-                          setState(() {
-                            isSelected = selected;
-                            if (isSelected == true) {
-                              selectedGroceries.add(groceryList[index]);
-                              isEditing = true;
-                            } else {
-                              selectedGroceries.remove(groceryList[index]);
-                            }
-                            if (selectedGroceries.isEmpty) {
-                              isEditing = false;
-                            }
-                          });
-                        },
+                      child: ShakeWidget(
+                        shake: isEditing,
+                        child: GroceryIngredient(
+                          ingredient: groceryList[index],
+                          editing: isEditing,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                if (!selectedGroceries.any(
+                                  (element) =>
+                                      element.id == groceryList[index].id,
+                                )) {
+                                  selectedGroceries.add(groceryList[index]);
+                                }
+                                isEditing = true;
+                              } else {
+                                selectedGroceries.removeWhere(
+                                  (element) =>
+                                      element.id == groceryList[index].id,
+                                );
+                              }
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ),

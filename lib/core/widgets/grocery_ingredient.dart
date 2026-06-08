@@ -4,8 +4,6 @@ import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
-import 'package:whats_for_dinner/core/providers/storage_provider.dart';
-import 'package:whats_for_dinner/features/shopping_list/shopping_list_screen.dart';
 
 class GroceryIngredient extends ConsumerStatefulWidget {
   const GroceryIngredient({
@@ -35,6 +33,7 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
         child: Row(
           children: [
             // --- CHECKBOX ---
+            widget.editing ? 
             Checkbox(
               checkColor: isChecked
                   ? Theme.of(context).colorScheme.onTertiary
@@ -52,7 +51,7 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
                   widget.onSelected(value);
                 });
               },
-            ),
+            ) : const SizedBox(),
             // --- MOVE ITEM ICON ---
             widget.editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
             const SizedBox(width: 10),
