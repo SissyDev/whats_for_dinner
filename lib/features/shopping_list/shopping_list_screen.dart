@@ -5,6 +5,7 @@ import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/core/widgets/all_set_card.dart';
 import 'package:whats_for_dinner/core/widgets/grocery_ingredient.dart';
+import 'package:whats_for_dinner/features/shopping_list/new_grocery.dart';
 
 List<String> pages = ['TB', 'B'];
 
@@ -20,6 +21,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   bool isEditing = false;
   bool isSelected = false;
   List<Ingredient> selectedGroceries = [];
+  List<Ingredient> boughtIngredients = [];
 
   @override
   void initState() {
@@ -30,6 +32,16 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   @override
   Widget build(BuildContext context) {
     List<Ingredient> groceryList = ref.watch(shoppingListProvider);
+
+    void _openModalBottomSheet() async {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => NewGrocery()));
+      if (mounted) {
+        setState(() {});
+        ref.read(shoppingListProvider.notifier).loadGroceries();
+      }
+    }
 
     return Container(
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
@@ -159,55 +171,111 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                 },
                 total: groceryList.length,
                 remaining: selectedGroceries.length,
+                bought: boughtIngredients.length,
               ),
 
               const SizedBox(height: 10),
-
-              Expanded(
-                child: ListView.builder(
-                  itemCount: groceryList.length,
-                  itemBuilder: (context, index) => InkWell(
-                    onTap: () {},
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 4,
-                        left: 12,
-                        right: 12,
+              // -- - GROCERIES LIST ---
+              selectedPage == 'TB'
+                  ? Expanded(
+                      child: ListView.builder(
+                        itemCount: groceryList.length,
+                        itemBuilder: (context, index) => InkWell(
+                          onTap: () {},
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 4,
+                              left: 12,
+                              right: 12,
+                            ),
+                            child: ShakeWidget(
+                              shake: isEditing,
+                              child: GroceryIngredient(
+                                ingredient: groceryList[index],
+                                editing: isEditing,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      if (!selectedGroceries.any(
+                                        (element) =>
+                                            element.id == groceryList[index].id,
+                                      )) {
+                                        selectedGroceries.add(
+                                          groceryList[index],
+                                        );
+                                      }
+                                      isEditing = true;
+                                    } else {
+                                      selectedGroceries.removeWhere(
+                                        (element) =>
+                                            element.id == groceryList[index].id,
+                                      );
+                                    }
+                                  });
+                                },
+                                onBought: (boughtItems) {
+                                  boughtIngredients = boughtItems;
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      child: ShakeWidget(
-                        shake: isEditing,
-                        child: GroceryIngredient(
-                          ingredient: groceryList[index],
-                          editing: isEditing,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                if (!selectedGroceries.any(
-                                  (element) =>
-                                      element.id == groceryList[index].id,
-                                )) {
-                                  selectedGroceries.add(groceryList[index]);
-                                }
-                                isEditing = true;
-                              } else {
-                                selectedGroceries.removeWhere(
-                                  (element) =>
-                                      element.id == groceryList[index].id,
-                                );
-                              }
-                            });
-                          },
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        itemCount: boughtIngredients.length,
+                        itemBuilder: (context, index) => InkWell(
+                          onTap: () {},
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 4,
+                              left: 12,
+                              right: 12,
+                            ),
+                            child: ShakeWidget(
+                              shake: isEditing,
+                              child: GroceryIngredient(
+                                ingredient: boughtIngredients[index],
+                                editing: isEditing,
+                                onSelected: (selected) {
+                                  if (isEditing) {
+                                    if (selected) {
+                                      if (!selectedGroceries.any(
+                                        (element) =>
+                                            element.id ==
+                                            boughtIngredients[index].id,
+                                      )) {
+                                        selectedGroceries.add(
+                                          boughtIngredients[index],
+                                        );
+                                      }
+                                    } else {
+                                      selectedGroceries.removeWhere(
+                                        (element) =>
+                                            element.id == groceryList[index].id,
+                                      );
+                                    }
+                                  }
+                                  setState(() {});
+                                },
+                                onBought: (boughtItems) {
+                                  boughtIngredients = boughtItems;
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             ],
           ),
+          // --- ADD GROCERY BUTTON ---
           Positioned(
-            bottom: 0,
-            right: 0,
+            bottom: 20,
+            right: 20,
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -219,12 +287,13 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                     }
                     isEditing = false;
                     selectedGroceries = [];
+                  } else {
+                    _openModalBottomSheet();
                   }
                 });
               },
               child: Container(
-                margin: EdgeInsets.all(12),
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.tertiary,
                   borderRadius: BorderRadius.circular(30),
@@ -232,7 +301,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                 child: Icon(
                   isEditing ? Icons.delete : Icons.add,
                   color: Theme.of(context).colorScheme.onTertiary,
-                  size: 30,
+                  size: 25,
                 ),
               ),
             ),

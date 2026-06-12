@@ -58,17 +58,8 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
       orElse: () => ingredient,
     );
     if (state.any((ing) => ingredient.id == ing.id)) {
-      print('contains');
       return;
-
-      /* await db.update(
-        'user_groceries',
-        {'quantity': ((int.parse(ingredient.quantity))+1).toString()},
-        where: 'id = ?',
-        whereArgs: [ingredient.id],
-      ); */
     } else {
-      print('containsnot');
       await db.insert('user_groceries', {
         'id': ingredient.id,
         'picture': ingredient.picture,
@@ -113,16 +104,14 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
   }
 
   Future<void> updateGroceries(
+    Ingredient ingredient,
     String id,
     String quantity,
-    String unit,
-    String place,
-    String notes,
   ) async {
     final db = await _getDatabase();
     await db.update(
       'user_groceries',
-      {'quantity': quantity, 'unit': unit, 'place': place, 'notes': notes},
+      {'quantity': quantity},
       where: 'id = ?',
       whereArgs: [id],
       conflictAlgorithm: ConflictAlgorithm.replace,

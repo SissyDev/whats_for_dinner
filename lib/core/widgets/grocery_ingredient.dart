@@ -11,16 +11,19 @@ class GroceryIngredient extends ConsumerStatefulWidget {
     required this.ingredient,
     required this.onSelected,
     required this.editing,
+    required this.onBought,
   });
   final Ingredient ingredient;
   final void Function(bool) onSelected;
   final bool editing;
+  final void Function(List<Ingredient>) onBought;
   @override
   ConsumerState<GroceryIngredient> createState() => _GroceryIngredientState();
 }
 
 class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
   bool isChecked = false;
+  List<Ingredient> boughtItems = [];
   @override
   Widget build(BuildContext context) {
     ref.watch(shoppingListProvider);
@@ -33,46 +36,58 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
         child: Row(
           children: [
             // --- CHECKBOX ---
-            widget.editing ? 
-            Checkbox(
-              checkColor: isChecked
-                  ? Theme.of(context).colorScheme.onTertiary
-                  : Theme.of(context).colorScheme.tertiary,
-              fillColor: WidgetStatePropertyAll(
-                Theme.of(context).colorScheme.tertiary,
-              ),
-              value: isChecked,
-              onChanged: (value) {
-                if (value == null) {
-                  return;
-                }
-                setState(() {
-                  isChecked = value;
-                  widget.onSelected(value);
-                });
-              },
-            ) : const SizedBox(),
-            // --- MOVE ITEM ICON ---
-            widget.editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
-            const SizedBox(width: 10),
-            // --- PICTURE + EDIT ---
             InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      EditIngredient(ingredient: widget.ingredient),
-                ),
-              ),
+              splashColor: Colors.transparent,
+              borderRadius: BorderRadius.circular(25),
+              onTap: () async {
+                isChecked = true;
+                if (isChecked) {
+                  int newQuantity = int.parse(widget.ingredient.quantity);
+                  newQuantity++;
+                  String formattedQty = newQuantity.toString();
+                  ref
+                      .read(shoppingListProvider.notifier)
+                      .updateGroceries(
+                        widget.ingredient,
+                        widget.ingredient.id,
+                        formattedQty,
+                      );
+                }
+                if (!widget.editing) {
+                  boughtItems.add(widget.ingredient);
+                  widget.onBought(boughtItems);
+                  await Future.delayed(Durations.medium1);
+                  ref
+                      .read(shoppingListProvider.notifier)
+                      .removeGroceries(widget.ingredient, widget.ingredient.id);
+                }
+                setState(() {});
+              },
               child: Container(
-                height: 40,
-                width: 40,
+                margin: EdgeInsets.all(8),
+                height: 30,
+                width: 30,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.tertiary,
+                    width: 2,
+                  ),
+                  color: isChecked
+                      ? Theme.of(context).colorScheme.tertiary
+                      : Theme.of(context).colorScheme.tertiaryFixedDim,
                 ),
-                child: Center(child: Text(widget.ingredient.category.emoji)),
+                child: Icon(
+                  Icons.check,
+                  color: isChecked
+                      ? Theme.of(context).colorScheme.onTertiary
+                      : Theme.of(context).colorScheme.tertiaryFixedDim,
+                  size: 20,
+                ),
               ),
             ),
+            // --- MOVE ITEM ICON ---
+            widget.editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
             const SizedBox(width: 12),
             InkWell(
               onTap: () => Navigator.of(context).push(
@@ -81,51 +96,37 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
                       EditIngredient(ingredient: widget.ingredient),
                 ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // --- TITLE ---
-                  SizedBox(
-                    width: 100,
-                    child: Text(
-                      widget.ingredient.name,
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
+              child: SizedBox(
+                width: 160,
+                child: Text(
+                  widget.ingredient.name,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
-                ],
+                ),
               ),
             ),
-            const Spacer(),
-            Row(
-              children: [
-                // --- QTY ---
-                Text(
-                  '${widget.ingredient.quantity.toString()} ${widget.ingredient.unit}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
 
-                IconButton(
-                  onPressed: () {
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .removeGroceries(
-                          widget.ingredient,
-                          widget.ingredient.id,
-                        );
-                  },
-                  icon: Icon(
-                    Icons.delete,
-                    size: 25,
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
-                ),
-              ],
+            const Spacer(),
+            // --- PICTURE ---
+            Text(
+              widget.ingredient.quantity,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            // --- DELETE BUTTON ---
+            const SizedBox(width: 12),
+            Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Center(child: Text(widget.ingredient.category.emoji)),
+            ),
+            const SizedBox(width: 12),
           ],
         ),
       ),

@@ -7,11 +7,13 @@ class AllSetCard extends StatefulWidget {
     required this.onEdit,
     required this.total,
     required this.remaining,
+    required this.bought
   });
   final String selectedPage;
   final Function(bool) onEdit;
   final int total;
   final int remaining;
+  final int bought;
 
   @override
   State<AllSetCard> createState() => _AllSetCardState();
@@ -63,7 +65,7 @@ class _AllSetCardState extends State<AllSetCard> {
                         const SizedBox(height: 4),
                         Text(
                           isEditing
-                              ? 'Remove or reorder items'
+                              ? 'Remove or drag items'
                               : 'You have ${widget.total} items to buy',
                           style: Theme.of(
                             context,
@@ -160,7 +162,7 @@ class _AllSetCardState extends State<AllSetCard> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'You\'ve bought 8 items',
+                              'You\'ve bought ${widget.bought} items',
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall!.copyWith(fontSize: 10),

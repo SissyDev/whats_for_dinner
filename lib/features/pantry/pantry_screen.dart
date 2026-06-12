@@ -48,18 +48,18 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface
+            color: Theme.of(context).colorScheme.surface,
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Column(  
+            child: Column(
               children: [
                 const SizedBox(height: 15),
                 // --- PLACES SELECTORS ---
                 AllPlacesButtons(),
-                
+
                 const Divider(),
-            
+
                 FutureBuilder(
                   future: _futureIngredients,
                   builder: (context, snapshot) =>
@@ -67,10 +67,7 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(
-                              ),
-                            ],
+                            children: [CircularProgressIndicator()],
                           ),
                         )
                       : Expanded(
@@ -89,11 +86,12 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
                                 )
                               // --- INGREDIENTS LIST ---
                               : ListView.builder(
-                                  itemCount: filteredList.length,                                  
-                                  itemBuilder: (context, index) => IngredientCard(
-                                    key: ValueKey(filteredList[index].id),
-                                    ingredient: filteredList[index],
-                                  ),
+                                  itemCount: filteredList.length,
+                                  itemBuilder: (context, index) =>
+                                      IngredientCard(
+                                        key: ValueKey(filteredList[index].id),
+                                        ingredient: filteredList[index],
+                                      ),
                                 ),
                         ),
                 ),
@@ -105,12 +103,22 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
         Positioned(
           bottom: 20,
           right: 20,
-          child: FloatingActionButton(
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
-            child: Icon(Icons.add),
-            onPressed: () {
-              _addIngredient();
-            },
+          child: InkWell(
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => NewIngredient())),
+            child: Container(
+              padding: EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.tertiary,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Icon(
+                Icons.add,
+                color: Theme.of(context).colorScheme.onTertiary,
+                size: 25,
+              ),
+            ),
           ),
         ),
       ],
