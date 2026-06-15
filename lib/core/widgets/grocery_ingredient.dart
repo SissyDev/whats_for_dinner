@@ -2,31 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
+import 'package:whats_for_dinner/core/providers/bought_items_provider.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
 
-class GroceryIngredient extends ConsumerStatefulWidget {
+class GroceryIngredient extends ConsumerWidget {
   const GroceryIngredient({
     super.key,
     required this.ingredient,
-    required this.onSelected,
     required this.editing,
-    required this.onBought,
+    required this.boughtPage,
   });
   final Ingredient ingredient;
-  final void Function(bool) onSelected;
   final bool editing;
-  final void Function(List<Ingredient>) onBought;
-  @override
-  ConsumerState<GroceryIngredient> createState() => _GroceryIngredientState();
-}
+  final bool boughtPage;
 
-class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
-  bool isChecked = false;
-  List<Ingredient> boughtItems = [];
   @override
-  Widget build(BuildContext context) {
-    ref.watch(shoppingListProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final boughtItems = ref.watch(boughtItemsProvider);
+    final toBuyItems = ref.watch(shoppingListProvider);
 
     return Card(
       elevation: 5,
@@ -40,28 +34,37 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
               splashColor: Colors.transparent,
               borderRadius: BorderRadius.circular(25),
               onTap: () async {
-                isChecked = true;
-                if (isChecked) {
-                  int newQuantity = int.parse(widget.ingredient.quantity);
-                  newQuantity++;
-                  String formattedQty = newQuantity.toString();
-                  ref
-                      .read(shoppingListProvider.notifier)
-                      .updateGroceries(
-                        widget.ingredient,
-                        widget.ingredient.id,
-                        formattedQty,
-                      );
+                if (!editing) {
+                  if (ingredient.selected == 0) {
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .updateSelection(ingredient, ingredient.id, 1);
+                    await Future.delayed(Durations.medium2);
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .removeGroceries(ingredient, ingredient.id);
+                    ref
+                        .read(boughtItemsProvider.notifier)
+                        .addGrocery(ingredient);
+                    ref
+                        .read(boughtItemsProvider.notifier)
+                        .updateSelection(ingredient, ingredient.id, 0);
+                  } else {
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .updateSelection(ingredient, ingredient.id, 0);
+                  }
+                } else {
+                  if (ingredient.selected == 0) {
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .updateSelection(ingredient, ingredient.id, 1);
+                  } else {
+                    ref
+                        .read(shoppingListProvider.notifier)
+                        .updateSelection(ingredient, ingredient.id, 0);
+                  }
                 }
-                if (!widget.editing) {
-                  boughtItems.add(widget.ingredient);
-                  widget.onBought(boughtItems);
-                  await Future.delayed(Durations.medium1);
-                  ref
-                      .read(shoppingListProvider.notifier)
-                      .removeGroceries(widget.ingredient, widget.ingredient.id);
-                }
-                setState(() {});
               },
               child: Container(
                 margin: EdgeInsets.all(8),
@@ -73,33 +76,32 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
                     color: Theme.of(context).colorScheme.tertiary,
                     width: 2,
                   ),
-                  color: isChecked
+                  color: ingredient.selected == 1 || (editing && boughtPage)
                       ? Theme.of(context).colorScheme.tertiary
-                      : Theme.of(context).colorScheme.tertiaryFixedDim,
+                      : Theme.of(context).colorScheme.onTertiary,
                 ),
                 child: Icon(
                   Icons.check,
-                  color: isChecked
+                  color: ingredient.selected == 1 
                       ? Theme.of(context).colorScheme.onTertiary
-                      : Theme.of(context).colorScheme.tertiaryFixedDim,
+                      : Theme.of(context).colorScheme.onTertiary,
                   size: 20,
                 ),
               ),
             ),
             // --- MOVE ITEM ICON ---
-            widget.editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
+            editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
             const SizedBox(width: 12),
             InkWell(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) =>
-                      EditIngredient(ingredient: widget.ingredient),
+                  builder: (context) => EditIngredient(ingredient: ingredient),
                 ),
               ),
               child: SizedBox(
                 width: 160,
                 child: Text(
-                  widget.ingredient.name,
+                  ingredient.name,
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleSmall!.copyWith(
@@ -113,7 +115,7 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
             const Spacer(),
             // --- PICTURE ---
             Text(
-              widget.ingredient.quantity,
+              ingredient.quantity,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(width: 12),
@@ -124,7 +126,7 @@ class _GroceryIngredientState extends ConsumerState<GroceryIngredient> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(25),
               ),
-              child: Center(child: Text(widget.ingredient.category.emoji)),
+              child: Center(child: Text(ingredient.category.emoji)),
             ),
             const SizedBox(width: 12),
           ],

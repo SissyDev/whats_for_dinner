@@ -5,14 +5,14 @@ class AllSetCard extends StatefulWidget {
     super.key,
     required this.selectedPage,
     required this.onEdit,
+    required this.isEditing,
     required this.total,
-    required this.remaining,
-    required this.bought
+    required this.bought,
   });
   final String selectedPage;
   final Function(bool) onEdit;
+  final bool isEditing;
   final int total;
-  final int remaining;
   final int bought;
 
   @override
@@ -20,7 +20,6 @@ class AllSetCard extends StatefulWidget {
 }
 
 class _AllSetCardState extends State<AllSetCard> {
-  bool isEditing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +54,7 @@ class _AllSetCardState extends State<AllSetCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEditing ? 'Edit items' : 'All set!',
+                          widget.isEditing ? 'Edit items' : 'All set!',
                           style: Theme.of(context).textTheme.bodySmall!
                               .copyWith(
                                 color: Theme.of(context).colorScheme.onPrimary,
@@ -64,7 +63,7 @@ class _AllSetCardState extends State<AllSetCard> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isEditing
+                          widget.isEditing
                               ? 'Remove or drag items'
                               : 'You have ${widget.total} items to buy',
                           style: Theme.of(
@@ -83,19 +82,16 @@ class _AllSetCardState extends State<AllSetCard> {
                         foregroundColor: Theme.of(context).colorScheme.tertiary,
                       ),
                       onPressed: () {
-                        setState(() {
-                          if (!isEditing) {
-                            widget.onEdit(true);
-                            isEditing = true;
-                          } else {
-                            widget.onEdit(false);
-                            isEditing = false;
-                          }
-                        });
+                        if (!widget.isEditing) {
+                          widget.onEdit(true);
+                        } else {
+                          widget.onEdit(false);
+                        }
+                        setState(() {});
                       },
-                      icon: isEditing ? Icon(Icons.check) : Icon(Icons.edit),
+                      icon: widget.isEditing ? Icon(Icons.check) : Icon(Icons.edit),
                       label: Text(
-                        isEditing ? 'Done' : 'Edit',
+                        widget.isEditing ? 'Done' : 'Edit',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall!.copyWith(fontSize: 10),
@@ -134,16 +130,30 @@ class _AllSetCardState extends State<AllSetCard> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.onTertiary,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          height: 40,
-                          width: 40,
-                          child: Icon(
-                            Icons.check,
-                            color: Theme.of(context).colorScheme.tertiary,
+                        InkWell(
+                          onTap: () {
+                            if (!widget.isEditing) {
+                              widget.onEdit(true);
+                            } else {
+                              widget.onEdit(false);
+                            }
+                            setState(() {});
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: widget.isEditing
+                                  ? Theme.of(context).colorScheme.tertiary
+                                  : Theme.of(context).colorScheme.onTertiary,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            height: 40,
+                            width: 40,
+                            child: Icon(
+                              Icons.check,
+                              color: widget.isEditing
+                                  ? Theme.of(context).colorScheme.onTertiary
+                                  : Theme.of(context).colorScheme.tertiary,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),

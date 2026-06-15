@@ -342,7 +342,7 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                       });
                                       ref
                                           .read(shoppingListProvider.notifier)
-                                          .updateGroceries(
+                                          .updateQuantity(
                                             _filteredIngredients[index],
                                             _filteredIngredients[index].id,
                                             formattedQty,

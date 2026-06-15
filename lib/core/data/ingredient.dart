@@ -11,6 +11,7 @@ class Ingredient {
     this.place = 'All',
     this.description = '',
     this.notes = '',
+    this.selected = 0,
   }) : id = id.isEmpty ? name.toLowerCase().trim() : id;
   final String id;
   final IngredientCategory category;
@@ -21,4 +22,5 @@ class Ingredient {
   String place;
   String? description;
   String? notes;
+  int selected;
 }

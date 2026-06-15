@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whats_for_dinner/core/animations/shake_widget.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
+import 'package:whats_for_dinner/core/providers/bought_items_provider.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 import 'package:whats_for_dinner/core/widgets/all_set_card.dart';
 import 'package:whats_for_dinner/core/widgets/grocery_ingredient.dart';
@@ -19,9 +20,9 @@ class ShoppingListScreen extends ConsumerStatefulWidget {
 class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   String selectedPage = pages[0];
   bool isEditing = false;
-  bool isSelected = false;
+  bool isBought = false;
   List<Ingredient> selectedGroceries = [];
-  List<Ingredient> boughtIngredients = [];
+  List<Ingredient> selectedBought = [];
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   @override
   Widget build(BuildContext context) {
     List<Ingredient> groceryList = ref.watch(shoppingListProvider);
+    List<Ingredient> boughtList = ref.watch(boughtItemsProvider);
 
     void _openModalBottomSheet() async {
       await Navigator.of(
@@ -40,6 +42,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
       if (mounted) {
         setState(() {});
         ref.read(shoppingListProvider.notifier).loadGroceries();
+        ref.read(boughtItemsProvider.notifier).loadGroceries();
       }
     }
 
@@ -68,9 +71,10 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             const SizedBox(width: 10),
                             InkWell(
                               onTap: () {
-                                setState(() {
-                                  selectedPage = pages[0];
-                                });
+                                selectedPage = pages[0];
+                                isEditing = false;
+                                isBought = false;
+                                setState(() {});
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -113,9 +117,10 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             ),
                             InkWell(
                               onTap: () {
-                                setState(() {
-                                  selectedPage = pages[1];
-                                });
+                                selectedPage = pages[1];
+                                isEditing = false;
+                                isBought= true;
+                                setState(() {});
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -160,18 +165,17 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                   ),
                 ],
               ),
-
               // --- ALL SET / GOOD JOB CARDS ---
               AllSetCard(
                 selectedPage: selectedPage,
+                total: groceryList.length,
+                bought: boughtList.length,
                 onEdit: (editing) {
                   setState(() {
                     isEditing = editing;
                   });
                 },
-                total: groceryList.length,
-                remaining: selectedGroceries.length,
-                bought: boughtIngredients.length,
+                isEditing: isEditing,
               ),
 
               const SizedBox(height: 10),
@@ -193,39 +197,17 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                               child: GroceryIngredient(
                                 ingredient: groceryList[index],
                                 editing: isEditing,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      if (!selectedGroceries.any(
-                                        (element) =>
-                                            element.id == groceryList[index].id,
-                                      )) {
-                                        selectedGroceries.add(
-                                          groceryList[index],
-                                        );
-                                      }
-                                      isEditing = true;
-                                    } else {
-                                      selectedGroceries.removeWhere(
-                                        (element) =>
-                                            element.id == groceryList[index].id,
-                                      );
-                                    }
-                                  });
-                                },
-                                onBought: (boughtItems) {
-                                  boughtIngredients = boughtItems;
-                                  setState(() {});
-                                },
+                                boughtPage: isBought,
                               ),
                             ),
                           ),
                         ),
                       ),
                     )
+                  // --- BOUGHT ITEMS ---
                   : Expanded(
                       child: ListView.builder(
-                        itemCount: boughtIngredients.length,
+                        itemCount: boughtList.length,
                         itemBuilder: (context, index) => InkWell(
                           onTap: () {},
                           child: Padding(
@@ -234,36 +216,23 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                               left: 12,
                               right: 12,
                             ),
-                            child: ShakeWidget(
-                              shake: isEditing,
-                              child: GroceryIngredient(
-                                ingredient: boughtIngredients[index],
-                                editing: isEditing,
-                                onSelected: (selected) {
-                                  if (isEditing) {
-                                    if (selected) {
-                                      if (!selectedGroceries.any(
-                                        (element) =>
-                                            element.id ==
-                                            boughtIngredients[index].id,
-                                      )) {
-                                        selectedGroceries.add(
-                                          boughtIngredients[index],
-                                        );
-                                      }
-                                    } else {
-                                      selectedGroceries.removeWhere(
-                                        (element) =>
-                                            element.id == groceryList[index].id,
-                                      );
-                                    }
-                                  }
-                                  setState(() {});
-                                },
-                                onBought: (boughtItems) {
-                                  boughtIngredients = boughtItems;
-                                  setState(() {});
-                                },
+                            child: Dismissible(
+                              key: GlobalKey(),
+                              onDismissed: (direction) {
+                                ref
+                                    .read(boughtItemsProvider.notifier)
+                                    .removeGroceries(
+                                      boughtList[index],
+                                      boughtList[index].id,
+                                    );
+                              },
+                              child: ShakeWidget(
+                                shake: isEditing,
+                                child: GroceryIngredient(
+                                  ingredient: boughtList[index],
+                                  editing: isEditing,
+                                  boughtPage: isBought,
+                                ),
                               ),
                             ),
                           ),
@@ -280,6 +249,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               onTap: () {
                 setState(() {
                   if (isEditing) {
+                    selectedGroceries = groceryList
+                        .where((element) => element.selected == 1)
+                        .toList();
                     for (final item in selectedGroceries) {
                       ref
                           .read(shoppingListProvider.notifier)

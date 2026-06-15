@@ -9,24 +9,24 @@ import 'dart:developer' as dev;
 Future<Database> _getDatabase() async {
   final dbPath = await sql.getDatabasesPath();
   final db = await sql.openDatabase(
-    path.join(dbPath, 'groceries.db'),
+    path.join(dbPath, 'bought_groceries.db'),
     version: 1,
     onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE user_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER)',
+        'CREATE TABLE user_bought_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER)',
       );
     },
   );
   return db;
 }
 
-class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
-  ShoppingListNotifier() : super(const []);
+class BoughtItemsNotifier extends StateNotifier<List<Ingredient>> {
+  BoughtItemsNotifier() : super(const []);
 
   Future<void> loadGroceries() async {
     final db = await _getDatabase();
     final data = await db.query(
-      'user_groceries',
+      'user_bought_groceries',
       orderBy: 'name COLLATE NOCASE ASC',
     );
     final groceries = data
@@ -44,7 +44,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
             place: row['place'] as String,
             description: row['description'] as String? ?? '',
             notes: row['notes'] as String? ?? '',
-            selected: row['selected'] as int
+            selected: row['selected'] as int,
           ),
         )
         .toList();
@@ -56,7 +56,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     if (state.any((ing) => ingredient.id == ing.id)) {
       return;
     } else {
-      await db.insert('user_groceries', {
+      await db.insert('user_bought_groceries', {
         'id': ingredient.id,
         'picture': ingredient.picture,
         'name': ingredient.name,
@@ -66,7 +66,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'place': ingredient.place,
         'description': ingredient.description,
         'notes': ingredient.notes,
-        'selected': ingredient.selected
+        'selected': ingredient.selected,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await loadGroceries();
@@ -77,7 +77,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     final batch = db.batch();
 
     for (final ingredient in ingredients) {
-      batch.insert('user_groceries', {
+      batch.insert('user_bought_groceries', {
         'id': ingredient.id,
         'picture': ingredient.picture,
         'name': ingredient.name,
@@ -87,7 +87,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'place': ingredient.place,
         'description': ingredient.description,
         'notes': ingredient.notes,
-        'selected': ingredient.selected
+        'selected': ingredient.selected,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -97,9 +97,10 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
 
   Future<void> removeGroceries(Ingredient ingredient, String id) async {
     final db = await _getDatabase();
-    await db.delete('user_groceries', where: 'id = ?', whereArgs: [id]);
+    await db.delete('user_bought_groceries', where: 'id = ?', whereArgs: [id]);
     state = state.where((ingredient) => ingredient.id != id).toList();
   }
+
   Future<void> updateSelection(
     Ingredient ingredient,
     String id,
@@ -107,7 +108,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
   ) async {
     final db = await _getDatabase();
     await db.update(
-      'user_groceries',
+      'user_bought_groceries',
       {'selected': selected},
       where: 'id = ?',
       whereArgs: [id],
@@ -115,6 +116,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     );
     await loadGroceries();
   }
+
   Future<void> updateQuantity(
     Ingredient ingredient,
     String id,
@@ -122,7 +124,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
   ) async {
     final db = await _getDatabase();
     await db.update(
-      'user_groceries',
+      'user_bought_groceries',
       {'quantity': quantity},
       where: 'id = ?',
       whereArgs: [id],
@@ -132,7 +134,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
   }
 }
 
-final shoppingListProvider =
-    StateNotifierProvider<ShoppingListNotifier, List<Ingredient>>((ref) {
-      return ShoppingListNotifier();
+final boughtItemsProvider =
+    StateNotifierProvider<BoughtItemsNotifier, List<Ingredient>>((ref) {
+      return BoughtItemsNotifier();
     });
