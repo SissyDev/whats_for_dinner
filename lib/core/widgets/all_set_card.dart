@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whats_for_dinner/core/data/ingredient.dart';
+import 'package:whats_for_dinner/core/providers/bought_items_provider.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
 
-class AllSetCard extends StatefulWidget {
+bool isSelect = false;
+
+class AllSetCard extends ConsumerStatefulWidget {
   const AllSetCard({
     super.key,
     required this.selectedPage,
     required this.onEdit,
     required this.isEditing,
-    required this.total,
-    required this.bought,
   });
   final String selectedPage;
   final Function(bool) onEdit;
   final bool isEditing;
-  final int total;
-  final int bought;
 
   @override
-  State<AllSetCard> createState() => _AllSetCardState();
+  ConsumerState<AllSetCard> createState() => _AllSetCardState();
 }
 
-class _AllSetCardState extends State<AllSetCard> {
-
+class _AllSetCardState extends ConsumerState<AllSetCard> {
   @override
   Widget build(BuildContext context) {
+    final List<Ingredient> shoppingList = ref.watch(shoppingListProvider);
+    final List<Ingredient> boughtItems = ref.watch(boughtItemsProvider);
+
     // --- ALL SET / EDIT ITEMS ---
     return widget.selectedPage == 'TB'
         ? Padding(
@@ -65,7 +69,7 @@ class _AllSetCardState extends State<AllSetCard> {
                         Text(
                           widget.isEditing
                               ? 'Remove or drag items'
-                              : 'You have ${widget.total} items to buy',
+                              : 'You have ${shoppingList.length} items to buy',
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall!.copyWith(fontSize: 10),
@@ -89,7 +93,9 @@ class _AllSetCardState extends State<AllSetCard> {
                         }
                         setState(() {});
                       },
-                      icon: widget.isEditing ? Icon(Icons.check) : Icon(Icons.edit),
+                      icon: widget.isEditing
+                          ? Icon(Icons.check)
+                          : Icon(Icons.edit),
                       label: Text(
                         widget.isEditing ? 'Done' : 'Edit',
                         style: Theme.of(
@@ -133,9 +139,33 @@ class _AllSetCardState extends State<AllSetCard> {
                         InkWell(
                           onTap: () {
                             if (!widget.isEditing) {
+                              isSelect = true;
                               widget.onEdit(true);
                             } else {
-                              widget.onEdit(false);
+                              if (isSelect) {
+                                widget.onEdit(true);
+                                isSelect = false;
+                                for (final ingredient in boughtItems) {
+                                  ref
+                                      .read(boughtItemsProvider.notifier)
+                                      .updateSelection(
+                                        ingredient,
+                                        ingredient.id,
+                                        1,
+                                      );
+                                }
+                              } else {
+                                widget.onEdit(false);
+                                for (final ingredient in boughtItems) {
+                                  ref
+                                      .read(boughtItemsProvider.notifier)
+                                      .updateSelection(
+                                        ingredient,
+                                        ingredient.id,
+                                        0,
+                                      );
+                                }
+                              }
                             }
                             setState(() {});
                           },
@@ -150,7 +180,7 @@ class _AllSetCardState extends State<AllSetCard> {
                             width: 40,
                             child: Icon(
                               Icons.check,
-                              color: widget.isEditing
+                              color: widget.isEditing && !isSelect
                                   ? Theme.of(context).colorScheme.onTertiary
                                   : Theme.of(context).colorScheme.tertiary,
                             ),
@@ -161,7 +191,7 @@ class _AllSetCardState extends State<AllSetCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Good job',
+                              widget.isEditing ? 'Select all' : 'Good job',
                               style: Theme.of(context).textTheme.bodySmall!
                                   .copyWith(
                                     color: Theme.of(
@@ -172,7 +202,9 @@ class _AllSetCardState extends State<AllSetCard> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'You\'ve bought ${widget.bought} items',
+                              widget.isEditing
+                                  ? 'Select all or swipe left to delete'
+                                  : 'You\'ve bought ${boughtItems.length} items',
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall!.copyWith(fontSize: 10),

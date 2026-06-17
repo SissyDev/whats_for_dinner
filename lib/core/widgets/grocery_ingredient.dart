@@ -19,8 +19,8 @@ class GroceryIngredient extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final boughtItems = ref.watch(boughtItemsProvider);
-    final toBuyItems = ref.watch(shoppingListProvider);
+    ref.watch(boughtItemsProvider);
+    ref.watch(shoppingListProvider);
 
     return Card(
       elevation: 5,
@@ -34,35 +34,74 @@ class GroceryIngredient extends ConsumerWidget {
               splashColor: Colors.transparent,
               borderRadius: BorderRadius.circular(25),
               onTap: () async {
+                final boughtNotifier = ref.read(boughtItemsProvider.notifier);
+                final shoppingNotifier = ref.read(
+                  shoppingListProvider.notifier,
+                );
                 if (!editing) {
-                  if (ingredient.selected == 0) {
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .updateSelection(ingredient, ingredient.id, 1);
-                    await Future.delayed(Durations.medium2);
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .removeGroceries(ingredient, ingredient.id);
-                    ref
-                        .read(boughtItemsProvider.notifier)
-                        .addGrocery(ingredient);
-                    ref
-                        .read(boughtItemsProvider.notifier)
-                        .updateSelection(ingredient, ingredient.id, 0);
+                  if (boughtPage) {
+                    if (ingredient.selected == 0) {  //false
+                      boughtNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        1,
+                      );
+                      await Future.delayed(Durations.medium1);
+                      boughtNotifier.removeGroceries(ingredient, ingredient.id);
+                      shoppingNotifier.addGrocery(ingredient);
+                      shoppingNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        0,
+                      );
+                    } else {
+                      boughtNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        0,
+                      );
+                    }
                   } else {
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .updateSelection(ingredient, ingredient.id, 0);
+                    if (ingredient.selected == 0) {
+                      shoppingNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        1,
+                      );
+                      await Future.delayed(Durations.medium1);
+
+                      boughtNotifier.addGrocery(ingredient);
+
+                      boughtNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        0,
+                      );
+                      shoppingNotifier.removeGroceries(
+                        ingredient,
+                        ingredient.id,
+                      );
+                    } else {
+                      shoppingNotifier.updateSelection(
+                        ingredient,
+                        ingredient.id,
+                        0,
+                      );
+                    }
                   }
                 } else {
-                  if (ingredient.selected == 0) {
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .updateSelection(ingredient, ingredient.id, 1);
+                  if (boughtPage) {
+                    boughtNotifier.updateSelection(
+                      ingredient,
+                      ingredient.id,
+                      1,
+                    );
                   } else {
-                    ref
-                        .read(shoppingListProvider.notifier)
-                        .updateSelection(ingredient, ingredient.id, 0);
+                    shoppingNotifier.updateSelection(
+                      ingredient,
+                      ingredient.id,
+                      1,
+                    );
                   }
                 }
               },
@@ -76,13 +115,13 @@ class GroceryIngredient extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.tertiary,
                     width: 2,
                   ),
-                  color: ingredient.selected == 1 || (editing && boughtPage)
+                  color: ingredient.selected == 1
                       ? Theme.of(context).colorScheme.tertiary
                       : Theme.of(context).colorScheme.onTertiary,
                 ),
                 child: Icon(
                   Icons.check,
-                  color: ingredient.selected == 1 
+                  color: ingredient.selected == 1
                       ? Theme.of(context).colorScheme.onTertiary
                       : Theme.of(context).colorScheme.onTertiary,
                   size: 20,
@@ -90,7 +129,9 @@ class GroceryIngredient extends ConsumerWidget {
               ),
             ),
             // --- MOVE ITEM ICON ---
-            editing ? Icon(Icons.drag_handle_rounded) : const SizedBox(),
+            editing && !boughtPage
+                ? Icon(Icons.drag_handle_rounded)
+                : const SizedBox(),
             const SizedBox(width: 12),
             InkWell(
               onTap: () => Navigator.of(context).push(
@@ -111,14 +152,14 @@ class GroceryIngredient extends ConsumerWidget {
                 ),
               ),
             ),
-
             const Spacer(),
-            // --- PICTURE ---
+            // ---  QUANTITY ---
             Text(
-              ingredient.quantity,
+              boughtPage ? '' : ingredient.quantity,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(width: 12),
+            // --- PICTURE ---
             Container(
               height: 40,
               width: 40,

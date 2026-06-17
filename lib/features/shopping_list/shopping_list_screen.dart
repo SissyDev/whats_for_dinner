@@ -21,8 +21,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   String selectedPage = pages[0];
   bool isEditing = false;
   bool isBought = false;
-  List<Ingredient> selectedGroceries = [];
-  List<Ingredient> selectedBought = [];
 
   @override
   void initState() {
@@ -74,6 +72,15 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 selectedPage = pages[0];
                                 isEditing = false;
                                 isBought = false;
+                                for (final ingredient in groceryList) {
+                                  ref
+                                      .read(shoppingListProvider.notifier)
+                                      .updateSelection(
+                                        ingredient,
+                                        ingredient.id,
+                                        0,
+                                      );
+                                }
                                 setState(() {});
                               },
                               child: Container(
@@ -119,7 +126,16 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                               onTap: () {
                                 selectedPage = pages[1];
                                 isEditing = false;
-                                isBought= true;
+                                isBought = true;
+                                for (final ingredient in boughtList) {
+                                  ref
+                                      .read(boughtItemsProvider.notifier)
+                                      .updateSelection(
+                                        ingredient,
+                                        ingredient.id,
+                                        0,
+                                      );
+                                }
                                 setState(() {});
                               },
                               child: Container(
@@ -168,8 +184,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               // --- ALL SET / GOOD JOB CARDS ---
               AllSetCard(
                 selectedPage: selectedPage,
-                total: groceryList.length,
-                bought: boughtList.length,
                 onEdit: (editing) {
                   setState(() {
                     isEditing = editing;
@@ -247,9 +261,21 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
             right: 20,
             child: InkWell(
               onTap: () {
-                setState(() {
-                  if (isEditing) {
-                    selectedGroceries = groceryList
+                if (isEditing) {
+                  if (selectedPage == 'B') {
+                    final List<Ingredient> selectedBought = boughtList
+                        .where((element) => element.selected == 1)
+                        .toList();
+                    for (final item in selectedBought) {
+                      ref
+                          .read(boughtItemsProvider.notifier)
+                          .removeGroceries(item, item.id);
+                    }
+                    setState(() {
+                      isEditing = false;
+                    });
+                  } else {
+                    final List<Ingredient> selectedGroceries = groceryList
                         .where((element) => element.selected == 1)
                         .toList();
                     for (final item in selectedGroceries) {
@@ -257,12 +283,13 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                           .read(shoppingListProvider.notifier)
                           .removeGroceries(item, item.id);
                     }
-                    isEditing = false;
-                    selectedGroceries = [];
-                  } else {
-                    _openModalBottomSheet();
+                    setState(() {
+                      isEditing = false;
+                    });
                   }
-                });
+                } else {
+                  _openModalBottomSheet();
+                }
               },
               child: Container(
                 padding: EdgeInsets.all(15),

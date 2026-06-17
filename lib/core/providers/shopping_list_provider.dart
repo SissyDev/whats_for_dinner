@@ -4,7 +4,6 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqlite_api.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
-import 'dart:developer' as dev;
 
 Future<Database> _getDatabase() async {
   final dbPath = await sql.getDatabasesPath();
