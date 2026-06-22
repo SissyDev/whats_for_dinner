@@ -12,7 +12,7 @@ Future<Database> _getDatabase() async {
     version: 1,
     onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE user_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER)',
+        'CREATE TABLE user_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER, position INTEGER)',
       );
     },
   );
@@ -26,7 +26,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     final db = await _getDatabase();
     final data = await db.query(
       'user_groceries',
-      orderBy: 'name COLLATE NOCASE ASC',
+      orderBy: 'position ASC',
     );
     final groceries = data
         .map(
@@ -43,7 +43,8 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
             place: row['place'] as String,
             description: row['description'] as String? ?? '',
             notes: row['notes'] as String? ?? '',
-            selected: row['selected'] as int
+            selected: row['selected'] as int,
+            position: row['position'] as int,
           ),
         )
         .toList();
@@ -52,6 +53,12 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
 
   Future<void> addGrocery(Ingredient ingredient) async {
     final db = await _getDatabase();
+    final List<Map<String, dynamic>> countResult = await db.rawQuery(
+      'SELECT COUNT(*) FROM user_groceries',
+    );
+    int currentCount = countResult.isNotEmpty
+        ? (countResult.first.values.first as int)
+        : 0;
     if (state.any((ing) => ingredient.id == ing.id)) {
       return;
     } else {
@@ -65,7 +72,8 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'place': ingredient.place,
         'description': ingredient.description,
         'notes': ingredient.notes,
-        'selected': ingredient.selected
+        'selected': ingredient.selected,
+        'position': currentCount,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await loadGroceries();
@@ -86,7 +94,8 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'place': ingredient.place,
         'description': ingredient.description,
         'notes': ingredient.notes,
-        'selected': ingredient.selected
+        'selected': ingredient.selected,
+        'position': ingredient.position,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -99,6 +108,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     await db.delete('user_groceries', where: 'id = ?', whereArgs: [id]);
     state = state.where((ingredient) => ingredient.id != id).toList();
   }
+
   Future<void> updateSelection(
     Ingredient ingredient,
     String id,
@@ -114,6 +124,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     );
     await loadGroceries();
   }
+
   Future<void> updateQuantity(
     Ingredient ingredient,
     String id,
@@ -128,6 +139,31 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     await loadGroceries();
+  }
+
+  Future<void> reorderItems(int oldIndex, int newIndex) async {
+    final List<Ingredient> copyList = List.from(state);
+    final Ingredient movedItem = copyList.removeAt(oldIndex);
+    copyList.insert(newIndex, movedItem);
+    state = copyList;
+    _saveNewOrderToDb(copyList);
+  }
+
+  Future<void> updateIngredientPosition(String id, int newPosition) async {
+    final db = await _getDatabase();
+    await db.update(
+      'user_groceries',
+      {'position': newPosition},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> _saveNewOrderToDb(List<Ingredient> updatedList) async {
+    for (int i = 0; i < updatedList.length; i++) {
+      final item = updatedList[i];
+      await updateIngredientPosition(item.id, i);
+    }
   }
 }
 

@@ -229,8 +229,7 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                             splashColor: Colors.transparent,
                                             onTap: () {
                                               newQuantity = int.parse(
-                                                _filteredIngredients[index]
-                                                    .quantity,
+                                                ingredient.quantity,
                                               );
                                               if (newQuantity > 999) {
                                                 newQuantity = 999;
@@ -238,19 +237,19 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                               newQuantity++;
                                               formattedQty = newQuantity
                                                   .toString();
-
-                                              setState(() {
-                                                ref
-                                                    .read(
-                                                      shoppingListProvider
-                                                          .notifier,
-                                                    )
-                                                    .updateQuantity(
-                                                      ingredient,
-                                                      ingredient.id,
-                                                      formattedQty,
-                                                    );
-                                              });
+                                              ref
+                                                  .read(
+                                                    shoppingListProvider
+                                                        .notifier,
+                                                  )
+                                                  .updateQuantity(
+                                                    ingredient,
+                                                    ingredient.id,
+                                                    formattedQty,
+                                                  );
+                                              ingredient.quantity =
+                                                  formattedQty;
+                                              setState(() {});
                                             },
                                             child: SizedBox(
                                               width: 25,
@@ -270,9 +269,7 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                         )
                                       : const SizedBox(),
                                   const SizedBox(width: 12),
-                                  Text(
-                                    ingredient.category.emoji,
-                                  ),
+                                  Text(ingredient.category.emoji),
                                   const SizedBox(width: 20),
                                   SizedBox(
                                     width: 160,
@@ -321,23 +318,19 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                         ingredient.quantity,
                                       );
                                       if (newQuantity == 1) {
-                                        setState(() {
-                                          isSelected = false;
-                                          _temporaryList.removeWhere(
-                                            (element) =>
-                                                element.id ==
-                                                ingredient.id,
-                                          );
-                                          ref
-                                              .read(
-                                                shoppingListProvider.notifier,
-                                              )
-                                              .removeGroceries(
-                                                ingredient,
-                                                ingredient.id,
-                                              );
-                                          return;
-                                        });
+                                        isSelected = false;
+                                        _temporaryList.removeWhere(
+                                          (element) =>
+                                              element.id == ingredient.id,
+                                        );
+                                        ref
+                                            .read(shoppingListProvider.notifier)
+                                            .removeGroceries(
+                                              ingredient,
+                                              ingredient.id,
+                                            );
+                                        setState(() {});
+                                        return;
                                       }
                                       if (newQuantity < 2) {
                                         newQuantity = 2;
@@ -345,8 +338,7 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                       newQuantity--;
                                       formattedQty = newQuantity.toString();
                                       setState(() {
-                                        ingredient.quantity =
-                                            formattedQty;
+                                        ingredient.quantity = formattedQty;
                                       });
                                       ref
                                           .read(shoppingListProvider.notifier)
@@ -361,9 +353,7 @@ class _NewGroceryState extends ConsumerState<NewGrocery> {
                                             height: 25,
                                             width: 35,
                                             child: Icon(
-                                              ingredient
-                                                          .quantity ==
-                                                      '1'
+                                              ingredient.quantity == '1'
                                                   ? Icons.close
                                                   : Icons.remove,
                                               color: Theme.of(

@@ -12,10 +12,12 @@ class GroceryIngredient extends ConsumerWidget {
     required this.ingredient,
     required this.editing,
     required this.boughtPage,
+    required this.orderIndex
   });
   final Ingredient ingredient;
   final bool editing;
   final bool boughtPage;
+  final int orderIndex;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -130,7 +132,9 @@ class GroceryIngredient extends ConsumerWidget {
             ),
             // --- MOVE ITEM ICON ---
             editing && !boughtPage
-                ? Icon(Icons.drag_handle_rounded)
+                ? ReorderableDragStartListener(
+                  index: orderIndex,
+                  child: Icon(Icons.drag_handle_rounded))
                 : const SizedBox(),
             const SizedBox(width: 12),
             InkWell(

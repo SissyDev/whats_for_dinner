@@ -12,7 +12,7 @@ Future<Database> _getDatabase() async {
     version: 1,
     onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE user_bought_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER)',
+        'CREATE TABLE user_bought_groceries(id TEXT PRIMARY KEY, picture TEXT, category TEXT, name TEXT, quantity TEXT, unit TEXT, place TEXT, description TEXT, notes TEXT, selected INTEGER, position INTEGER)',
       );
     },
   );
@@ -44,6 +44,7 @@ class BoughtItemsNotifier extends StateNotifier<List<Ingredient>> {
             description: row['description'] as String? ?? '',
             notes: row['notes'] as String? ?? '',
             selected: row['selected'] as int,
+            position: row['position'] as int
           ),
         )
         .toList();
@@ -66,6 +67,7 @@ class BoughtItemsNotifier extends StateNotifier<List<Ingredient>> {
         'description': ingredient.description,
         'notes': ingredient.notes,
         'selected': ingredient.selected,
+        'position': ingredient.position
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await loadGroceries();
@@ -87,6 +89,7 @@ class BoughtItemsNotifier extends StateNotifier<List<Ingredient>> {
         'description': ingredient.description,
         'notes': ingredient.notes,
         'selected': ingredient.selected,
+        'position': ingredient.position
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
 

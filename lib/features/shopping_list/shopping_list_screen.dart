@@ -196,26 +196,40 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               // -- - GROCERIES LIST ---
               selectedPage == 'TB'
                   ? Expanded(
-                      child: ListView.builder(
+                      child: ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
                         itemCount: groceryList.length,
-                        itemBuilder: (context, index) => InkWell(
-                          onTap: () {},
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 4,
-                              left: 12,
-                              right: 12,
-                            ),
-                            child: ShakeWidget(
-                              shake: isEditing,
-                              child: GroceryIngredient(
-                                ingredient: groceryList[index],
-                                editing: isEditing,
-                                boughtPage: isBought,
+                        onReorder: (oldIndex, newIndex) {
+                          if (newIndex > oldIndex) {
+                            newIndex -= 1;
+                          }
+                          ref
+                              .read(shoppingListProvider.notifier)
+                              .reorderItems(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          final Ingredient ingredient = groceryList[index];
+                          return InkWell(
+                            key: ValueKey(ingredient.id),
+                            onTap: () {},
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 4,
+                                left: 12,
+                                right: 12,
+                              ),
+                              child: ShakeWidget(
+                                shake: isEditing,
+                                child: GroceryIngredient(
+                                  ingredient: ingredient,
+                                  editing: isEditing,
+                                  boughtPage: isBought,
+                                  orderIndex: index,
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     )
                   // --- BOUGHT ITEMS ---
@@ -246,6 +260,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                   ingredient: boughtList[index],
                                   editing: isEditing,
                                   boughtPage: isBought,
+                                  orderIndex: index,
                                 ),
                               ),
                             ),
