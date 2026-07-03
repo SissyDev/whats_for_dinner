@@ -43,7 +43,7 @@ enum IngredientCategory {
 extension IngredientCategoryUI on IngredientCategory {
   String get label {
     switch (this) {
-      case IngredientCategory.bean: return "Beans";
+      case IngredientCategory.bean: return "Legumes";
       case IngredientCategory.bread: return "Bread";
       case IngredientCategory.cereal: return "Cereals";
       case IngredientCategory.cheese: return "Cheese";

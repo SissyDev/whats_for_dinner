@@ -1,9 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqlite_api.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
+
+List<String> sortList = ['A-Z', 'Category'];
+String? sortBy;
 
 Future<Database> _getDatabase() async {
   final dbPath = await sql.getDatabasesPath();
@@ -24,10 +28,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
 
   Future<void> loadGroceries() async {
     final db = await _getDatabase();
-    final data = await db.query(
-      'user_groceries',
-      orderBy: 'position ASC',
-    );
+    final data = await db.query('user_groceries', orderBy: 'position ASC');
     final groceries = data
         .map(
           (row) => Ingredient(
@@ -48,7 +49,31 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
           ),
         )
         .toList();
-    state = [...groceries];
+    List<Ingredient> sortedList = List.from(groceries);
+    if (sortBy == null) {
+      state = [...groceries];
+      return;
+    }
+    if (sortBy == 'A-Z') {
+      sortedList.sort((a, b) => a.name.compareTo(b.name));
+    }
+    if (sortBy == 'Category') {
+      sortedList.sort((a, b) => a.category.label.compareTo(b.category.label));
+    } 
+      _saveNewOrderToDb(sortedList);
+      state = [...sortedList];
+  }
+
+  void setOrderBy(String? orderBy) {
+    sortBy = orderBy;
+    loadGroceries();
+  }
+
+  Future<void> _saveNewOrderToDb(List<Ingredient> updatedList) async {
+    for (int i = 0; i < updatedList.length; i++) {
+      final item = updatedList[i];
+      await updateIngredientPosition(item.id, i);
+    }
   }
 
   Future<void> addGrocery(Ingredient ingredient) async {
@@ -76,6 +101,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'position': currentCount,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
+
     await loadGroceries();
   }
 
@@ -98,7 +124,6 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'position': ingredient.position,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
-
     await batch.commit(noResult: true);
     await loadGroceries();
   }
@@ -143,6 +168,7 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
 
   Future<void> reorderItems(int oldIndex, int newIndex) async {
     final List<Ingredient> copyList = List.from(state);
+
     final Ingredient movedItem = copyList.removeAt(oldIndex);
     copyList.insert(newIndex, movedItem);
     state = copyList;
@@ -157,13 +183,6 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
       where: 'id = ?',
       whereArgs: [id],
     );
-  }
-
-  Future<void> _saveNewOrderToDb(List<Ingredient> updatedList) async {
-    for (int i = 0; i < updatedList.length; i++) {
-      final item = updatedList[i];
-      await updateIngredientPosition(item.id, i);
-    }
   }
 }
 

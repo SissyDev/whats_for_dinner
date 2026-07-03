@@ -86,6 +86,9 @@ class _AllSetCardState extends ConsumerState<AllSetCard> {
                         foregroundColor: Theme.of(context).colorScheme.tertiary,
                       ),
                       onPressed: () {
+                        if (shoppingList.isEmpty) {
+                          return;
+                        }
                         if (!widget.isEditing) {
                           widget.onEdit(true);
                         } else {
@@ -138,6 +141,9 @@ class _AllSetCardState extends ConsumerState<AllSetCard> {
                       children: [
                         InkWell(
                           onTap: () {
+                            if (boughtItems.isEmpty) {
+                              return;
+                            }
                             if (!widget.isEditing) {
                               isSelect = true;
                               widget.onEdit(true);

@@ -21,6 +21,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   String selectedPage = pages[0];
   bool isEditing = false;
   bool isBought = false;
+  String dropdownValue = sortList[0];
 
   @override
   void initState() {
@@ -34,9 +35,11 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     List<Ingredient> boughtList = ref.watch(boughtItemsProvider);
 
     void _openModalBottomSheet() async {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => NewGrocery()));
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => NewGrocery(order: dropdownValue),
+        ),
+      );
       if (mounted) {
         setState(() {});
         ref.read(shoppingListProvider.notifier).loadGroceries();
@@ -191,48 +194,103 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                 },
                 isEditing: isEditing,
               ),
-
-              const SizedBox(height: 10),
-              // -- - GROCERIES LIST ---
+              // --- SORT BY ---
               selectedPage == 'TB'
-                  ? Expanded(
-                      child: ReorderableListView.builder(
-                        buildDefaultDragHandles: false,
-                        itemCount: groceryList.length,
-                        onReorder: (oldIndex, newIndex) {
-                          if (newIndex > oldIndex) {
-                            newIndex -= 1;
-                          }
-                          ref
-                              .read(shoppingListProvider.notifier)
-                              .reorderItems(oldIndex, newIndex);
-                        },
-                        itemBuilder: (context, index) {
-                          final Ingredient ingredient = groceryList[index];
-                          return InkWell(
-                            key: ValueKey(ingredient.id),
-                            onTap: () {},
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 4,
-                                left: 12,
-                                right: 12,
-                              ),
-                              child: ShakeWidget(
-                                shake: isEditing,
-                                child: GroceryIngredient(
-                                  ingredient: ingredient,
-                                  editing: isEditing,
-                                  boughtPage: isBought,
-                                  orderIndex: index,
-                                ),
-                              ),
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Sort by'),
+                          DropdownButton(
+                            alignment: Alignment.centerRight,
+                            hint: Text(
+                              'Sort by ',
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                          );
-                        },
+                            value: dropdownValue,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == null) {
+                                  sortBy == null;
+                                  return;
+                                }
+                                if (value == 'A-Z') {
+                                  sortBy = sortList[0];
+                                }
+                                if (value == 'Category') {
+                                  sortBy = sortList[1];
+                                } 
+                                ref
+                                      .read(shoppingListProvider.notifier)
+                                      .setOrderBy(value);
+                                dropdownValue = value;
+                              });
+                            },
+                            items: sortList.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
                     )
+                  : const SizedBox(),
+              const SizedBox(height: 10),
+              // --- GROCERIES LIST ---
+              selectedPage == 'TB'
+                  ? groceryList.isEmpty
+                        ? Expanded(
+                            child: Center(
+                              child: Text('You have no items in your cart'),
+                            ),
+                          )
+                        : Expanded(
+                            child: ReorderableListView.builder(
+                              buildDefaultDragHandles: false,
+                              itemCount: groceryList.length,
+                              onReorder: (oldIndex, newIndex) {
+                                if (newIndex > oldIndex) {
+                                  newIndex -= 1;
+                                }
+                                ref
+                                    .read(shoppingListProvider.notifier)
+                                    .reorderItems(oldIndex, newIndex);
+                              },
+                              itemBuilder: (context, index) {
+                                final Ingredient ingredient =
+                                    groceryList[index];
+                                return InkWell(
+                                  key: ValueKey(ingredient.id),
+                                  onTap: () {},
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 4,
+                                      left: 12,
+                                      right: 12,
+                                    ),
+                                    child: ShakeWidget(
+                                      shake: isEditing,
+                                      child: GroceryIngredient(
+                                        ingredient: ingredient,
+                                        editing: isEditing,
+                                        boughtPage: isBought,
+                                        orderIndex: index,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
                   // --- BOUGHT ITEMS ---
+                  : boughtList.isEmpty
+                  ? Expanded(child: Center(child: Text('No items to show')))
                   : Expanded(
                       child: ListView.builder(
                         itemCount: boughtList.length,

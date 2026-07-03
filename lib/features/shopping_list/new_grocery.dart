@@ -7,8 +7,8 @@ import 'package:whats_for_dinner/core/providers/db_provider.dart';
 import 'dart:developer' as dev;
 
 class NewGrocery extends ConsumerStatefulWidget {
-  const NewGrocery({super.key});
-
+  const NewGrocery({super.key, required this.order});
+  final String order;
   @override
   ConsumerState<NewGrocery> createState() => _NewGroceryState();
 }
