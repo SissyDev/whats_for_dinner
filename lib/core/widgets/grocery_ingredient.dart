@@ -4,7 +4,10 @@ import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/ingredient_category.dart';
 import 'package:whats_for_dinner/core/providers/bought_items_provider.dart';
 import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
+import 'package:whats_for_dinner/core/providers/storage_provider.dart';
 import 'package:whats_for_dinner/features/pantry/edit_ingredient.dart';
+import 'package:whats_for_dinner/features/shopping_list/edit_grocery_ingredient.dart';
+import 'dart:developer' as dev;
 
 class GroceryIngredient extends ConsumerWidget {
   const GroceryIngredient({
@@ -12,7 +15,7 @@ class GroceryIngredient extends ConsumerWidget {
     required this.ingredient,
     required this.editing,
     required this.boughtPage,
-    required this.orderIndex
+    required this.orderIndex,
   });
   final Ingredient ingredient;
   final bool editing;
@@ -23,6 +26,7 @@ class GroceryIngredient extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(boughtItemsProvider);
     ref.watch(shoppingListProvider);
+    final storageIngredients = ref.watch(storageProvider);
 
     return Card(
       elevation: 5,
@@ -42,7 +46,8 @@ class GroceryIngredient extends ConsumerWidget {
                 );
                 if (!editing) {
                   if (boughtPage) {
-                    if (ingredient.selected == 0) {  //false
+                    if (ingredient.selected == 0) {
+                      //false
                       boughtNotifier.updateSelection(
                         ingredient,
                         ingredient.id,
@@ -73,7 +78,6 @@ class GroceryIngredient extends ConsumerWidget {
                       await Future.delayed(Durations.medium1);
 
                       boughtNotifier.addGrocery(ingredient);
-
                       boughtNotifier.updateSelection(
                         ingredient,
                         ingredient.id,
@@ -83,6 +87,42 @@ class GroceryIngredient extends ConsumerWidget {
                         ingredient,
                         ingredient.id,
                       );
+
+                      if (!storageIngredients.any((element) {
+                        return element.id == ingredient.id;
+                      })) {
+                        ref
+                            .read(storageProvider.notifier)
+                            .addNewIngredient(
+                              ingredient.id,
+                              ingredient.picture,
+                              ingredient.name,
+                              ingredient.category,
+                              ingredient.quantity,
+                              ingredient.unit,
+                              ingredient.place,
+                              ingredient.description,
+                              ingredient.notes,
+                            );
+                      } else {
+                        final storageIngredient = storageIngredients.firstWhere(
+                          (element) => element.id == ingredient.id,
+                        );
+                        final storageQty = storageIngredient.quantity;
+                        final qtySum =
+                            (int.parse(storageQty) +
+                                    int.parse(ingredient.quantity))
+                                .toString();
+                        ref
+                            .read(storageProvider.notifier)
+                            .updateIngredients(
+                              ingredient.id,
+                              qtySum,
+                              'pcs',
+                              ingredient.place,
+                              ingredient.notes ?? '',
+                            );
+                      }
                     } else {
                       shoppingNotifier.updateSelection(
                         ingredient,
@@ -133,16 +173,19 @@ class GroceryIngredient extends ConsumerWidget {
             // --- MOVE ITEM ICON ---
             editing && !boughtPage
                 ? ReorderableDragStartListener(
-                  index: orderIndex,
-                  child: Icon(Icons.drag_handle_rounded))
+                    index: orderIndex,
+                    child: Icon(Icons.drag_handle_rounded),
+                  )
                 : const SizedBox(),
             const SizedBox(width: 12),
+            // --- NAME ---
             InkWell(
-              onTap: () => Navigator.of(context).push(
+              onTap: !boughtPage ? () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => EditIngredient(ingredient: ingredient),
+                  builder: (context) =>
+                      EditGroceryIngredient(ingredient: ingredient),
                 ),
-              ),
+              ) : null,
               child: SizedBox(
                 width: 160,
                 child: Text(

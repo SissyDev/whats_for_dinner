@@ -49,24 +49,24 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
           ),
         )
         .toList();
-    List<Ingredient> sortedList = List.from(groceries);
-    if (sortBy == null) {
-      state = [...groceries];
-      return;
-    }
-    if (sortBy == 'A-Z') {
-      sortedList.sort((a, b) => a.name.compareTo(b.name));
-    }
-    if (sortBy == 'Category') {
-      sortedList.sort((a, b) => a.category.label.compareTo(b.category.label));
-    } 
-      _saveNewOrderToDb(sortedList);
-      state = [...sortedList];
+    state = [...groceries];
   }
 
   void setOrderBy(String? orderBy) {
-    sortBy = orderBy;
-    loadGroceries();
+    List<Ingredient> sortedList = List.from(state);
+    if (orderBy == null) {
+      return;
+    }
+    if (orderBy == 'A-Z') {
+      sortedList.sort((a, b) => a.name.compareTo(b.name));
+      sortBy = 'A-Z';
+    }
+    if (orderBy == 'Category') {
+      sortedList.sort((a, b) => a.category.name.compareTo(b.category.name));
+      sortBy = 'Category';
+    }
+    _saveNewOrderToDb(sortedList);
+    state = [...sortedList];
   }
 
   Future<void> _saveNewOrderToDb(List<Ingredient> updatedList) async {
@@ -78,12 +78,6 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
 
   Future<void> addGrocery(Ingredient ingredient) async {
     final db = await _getDatabase();
-    final List<Map<String, dynamic>> countResult = await db.rawQuery(
-      'SELECT COUNT(*) FROM user_groceries',
-    );
-    int currentCount = countResult.isNotEmpty
-        ? (countResult.first.values.first as int)
-        : 0;
     if (state.any((ing) => ingredient.id == ing.id)) {
       return;
     } else {
@@ -98,10 +92,9 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
         'description': ingredient.description,
         'notes': ingredient.notes,
         'selected': ingredient.selected,
-        'position': currentCount,
+        'position': ingredient.position,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
-
     await loadGroceries();
   }
 
@@ -166,9 +159,27 @@ class ShoppingListNotifier extends StateNotifier<List<Ingredient>> {
     await loadGroceries();
   }
 
+  Future<void> updateIngredient(
+    Ingredient ingredient,
+    String id,
+    String quantity,
+    String unit,
+    String place,
+    String notes,
+  ) async {
+    final db = await _getDatabase();
+    await db.update(
+      'user_groceries',
+      {'quantity': quantity, 'unit': unit, 'place': place, 'notes': notes},
+      where: 'id = ?',
+      whereArgs: [id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    await loadGroceries();
+  }
+
   Future<void> reorderItems(int oldIndex, int newIndex) async {
     final List<Ingredient> copyList = List.from(state);
-
     final Ingredient movedItem = copyList.removeAt(oldIndex);
     copyList.insert(newIndex, movedItem);
     state = copyList;

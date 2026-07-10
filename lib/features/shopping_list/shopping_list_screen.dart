@@ -210,22 +210,18 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             ),
                             value: dropdownValue,
                             onChanged: (value) {
-                              setState(() {
-                                if (value == null) {
-                                  sortBy == null;
-                                  return;
-                                }
-                                if (value == 'A-Z') {
-                                  sortBy = sortList[0];
-                                }
-                                if (value == 'Category') {
-                                  sortBy = sortList[1];
-                                } 
-                                ref
-                                      .read(shoppingListProvider.notifier)
-                                      .setOrderBy(value);
-                                dropdownValue = value;
-                              });
+                              ref
+                                  .read(shoppingListProvider.notifier)
+                                  .setOrderBy(value);
+                              if (value != null) {
+                                setState(() {
+                                  dropdownValue = sortBy!;
+                                });
+                              } else {
+                                setState(() {
+                                  dropdownValue = 'Sort by';
+                                });
+                              }
                             },
                             items: sortList.map((value) {
                               return DropdownMenuItem(

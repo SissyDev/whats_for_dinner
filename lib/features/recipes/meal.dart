@@ -1,10 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whats_for_dinner/core/data/ingredient.dart';
 import 'package:whats_for_dinner/core/data/recipe.dart';
+import 'package:whats_for_dinner/core/providers/db_provider.dart';
 import 'package:whats_for_dinner/core/providers/recipes_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:whats_for_dinner/core/providers/shopping_list_provider.dart';
+import 'package:whats_for_dinner/core/providers/storage_provider.dart';
 
 class Meal extends ConsumerStatefulWidget {
   const Meal({super.key, required this.value, this.initialRecipe});
@@ -18,18 +22,20 @@ class Meal extends ConsumerStatefulWidget {
 
 class _MealState extends ConsumerState<Meal> {
   late Future _recipeFuture;
+  late Future ingredientsFromDb;
 
   @override
   void initState() {
     final initialRecipe = widget.initialRecipe;
+    ingredientsFromDb = ref.read(dbListProvider.notifier).loadIngredients();
     if (initialRecipe != null &&
         initialRecipe.ingredientsList.isNotEmpty &&
         initialRecipe.instructions.trim().isNotEmpty) {
       _recipeFuture = Future.value(initialRecipe);
     } else {
-      _recipeFuture = ref.read(recipesListProvider.notifier).getRecipe(
-        widget.value,
-      );
+      _recipeFuture = ref
+          .read(recipesListProvider.notifier)
+          .getRecipe(widget.value);
     }
     super.initState();
   }
@@ -37,6 +43,9 @@ class _MealState extends ConsumerState<Meal> {
   @override
   Widget build(BuildContext context) {
     ref.watch(recipesListProvider);
+    final ingredientsAtHome = ref.watch(storageProvider);
+    final groceryIngredients = ref.watch(shoppingListProvider);
+    final dbIngredients = ref.watch(dbListProvider);
 
     return FutureBuilder(
       future: _recipeFuture,
@@ -162,16 +171,93 @@ class _MealState extends ConsumerState<Meal> {
                                         i <= recipe.ingredientsList.length - 1;
                                         i++
                                       )
-                                        Text(
-                                          '- ${recipe.unitList[i]} ${recipe.ingredientsList[i]}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onPrimary,
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 5,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              InkWell(
+                                                onTap: () {
+                                                  final matchingIngredient =
+                                                      dbIngredients.firstWhere (
+                                                        (element) =>
+                                                            element.name.toLowerCase()
+                                                                 ==
+                                                            recipe
+                                                                .ingredientsList[i]
+                                                                .toString().toLowerCase(),
+                                                      );
+                                                  if (!groceryIngredients.any(
+                                                    (element) =>
+                                                        recipe
+                                                            .ingredientsList[i]
+                                                            .toString() ==
+                                                        element.name.toString(),
+                                                  )) {
+                                                    ref
+                                                        .read(
+                                                          shoppingListProvider
+                                                              .notifier,
+                                                        )
+                                                        .addGrocery(
+                                                          matchingIngredient,
+                                                        );
+                                                  } else {
+                                                    ref
+                                                        .read(
+                                                          shoppingListProvider
+                                                              .notifier,
+                                                        )
+                                                        .removeGroceries(
+                                                          matchingIngredient,
+                                                          matchingIngredient.id,
+                                                        );
+                                                  }
+                                                },
+                                                child: Icon(
+                                                  !groceryIngredients.any(
+                                                        (element) =>
+                                                            recipe
+                                                                .ingredientsList[i] ==
+                                                            element.name,
+                                                      )
+                                                      ? Icons
+                                                            .shopping_cart_outlined
+                                                      : Icons
+                                                            .shopping_cart_rounded,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary,
+                                                ),
                                               ),
+
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                ' ${recipe.unitList[i]} ${recipe.ingredientsList[i]}',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      color:
+                                                          !ingredientsAtHome.any(
+                                                            (element) =>
+                                                                recipe
+                                                                    .ingredientsList[i]
+                                                                    .toLowerCase() ==
+                                                                element.name
+                                                                    .toLowerCase(),
+                                                          )
+                                                          ? Theme.of(
+                                                              context,
+                                                            ).colorScheme.error
+                                                          : Theme.of(context)
+                                                                .colorScheme
+                                                                .onPrimary,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                     ],
                                   ),
